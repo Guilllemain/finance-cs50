@@ -47,7 +47,45 @@ def index():
 @login_required
 def buy():
     """Buy shares of stock"""
-    return apology("TODO")
+    if request.method == "POST":
+        symbol = lookup(request.form.get('symbol'))
+        if not symbol:
+            return apology('Symbol does not exists', 403)
+        if not request.form.get("shares"):
+            return apology('You must provide a positive number', 403)
+        
+        # total cost of the transaction
+        total = float(request.form.get("shares")) * symbol['price']
+        
+        # get the cash from the user 
+        user_cash = db.execute('SELECT cash FROM users WHERE id = :id', id=session.get('user_id'))[0]['cash']
+
+        # check if the user can afford the stock
+        cash_left = user_cash - total
+        if (cash_left < 0):
+            return apology('You cannot afford it')
+
+        # insert the requested symbol into the symbol table if it doesn't exists
+        is_symbol_present = db.execute(
+            'SELECT symbol FROM symbols WHERE symbol = :symbol', symbol=symbol['symbol'])
+        if not is_symbol_present:
+            db.execute('INSERT INTO symbols VALUES(:symbol)', symbol=symbol['symbol'])
+        
+        # get the id from the requested symbol
+        symbol_id = db.execute('SELECT id FROM symbols WHERE symbol = :symbol', symbol=symbol['symbol'])
+        
+        # add the transaction to the table
+        db.execute('INSERT INTO transactions VALUES (:user_id, :symbol_id, :shares',
+                   user_id=session.get('user_id'), symbol_id=symbol_id, shares=request.form.get("shares"))
+        
+        # update the user's cash
+        db.execute('UPDATE users SET cash = :cash WHERE id = :id',
+                   cash=cash_left, id=session.get('user_id'))
+        
+        return render_template('index.html')
+    else:
+        print(session)
+        return render_template('buy.html')
 
 
 @app.route("/check", methods=["GET"])
@@ -117,6 +155,8 @@ def quote():
     """Get stock quote."""
     if request.method == "POST":
         symbol = lookup(request.form.get('symbol'))
+        if not symbol:
+            return apology('Symbol does not exists', 403)
         quote = { 'name': symbol['name'], 'symbol': symbol['symbol'], 'price': usd(symbol['price']) }
         return render_template('quoted.html', quote=quote)
     else:
