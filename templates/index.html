@@ -5,5 +5,33 @@
 {% endblock %}
 
 {% block main %}
-    <div>TO DO</div>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Symbol</th>
+                <th scope="col">Name</th>
+                <th scope="col">Shares</th>
+                <th scope="col">Price</th>
+                <th scope="col">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stocks %}
+                <tr>
+                    <td>{{ stock['symbol'] }}</td>
+                    <td>{{ stock['name'] }}</td>
+                    <td>{{ stock['shares'] }}</td>
+                    <td>{{ stock['price'] }}</td>
+                    <td>{{ stock['total'] }}</td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <td>CASH</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{{ cash }}</td>
+            </tr>
+        </tbody>
+    </table>
 {% endblock %}

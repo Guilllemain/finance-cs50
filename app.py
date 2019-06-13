@@ -40,7 +40,21 @@ db = SQL("sqlite:///finance.db")
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return apology("TODO")
+    stocks = []
+    cash_left = usd(db.execute(
+        'SELECT cash FROM users WHERE id = :id', id=session.get('user_id'))[0]['cash'])
+    transactions = db.execute('SELECT * FROM transactions WHERE user_id = :user_id', user_id=session.get('user_id'))
+    if transactions:
+        for transaction in transactions:
+            symbol = db.execute('SELECT symbol FROM symbols WHERE id = :id', id=transaction['symbol_id'])[0]['symbol']
+            action = lookup(symbol)
+            name = action['name']
+            price = usd(action['price'])
+            shares = transaction['shares']
+            total = usd(float(shares) * action['price'])
+            stocks.append({ 'symbol': symbol, 'name': name, 'shares': shares, 'price': price, 'total': total })
+
+    return render_template("index.html", stocks=stocks, cash=cash_left)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -69,22 +83,26 @@ def buy():
         is_symbol_present = db.execute(
             'SELECT symbol FROM symbols WHERE symbol = :symbol', symbol=symbol['symbol'])
         if not is_symbol_present:
-            db.execute('INSERT INTO symbols VALUES(:symbol)', symbol=symbol['symbol'])
+            db.execute('INSERT INTO symbols (symbol) VALUES(:symbol)', symbol=symbol['symbol'])
         
         # get the id from the requested symbol
-        symbol_id = db.execute('SELECT id FROM symbols WHERE symbol = :symbol', symbol=symbol['symbol'])
-        
-        # add the transaction to the table
-        db.execute('INSERT INTO transactions VALUES (:user_id, :symbol_id, :shares',
-                   user_id=session.get('user_id'), symbol_id=symbol_id, shares=request.form.get("shares"))
+        symbol_id = db.execute('SELECT id FROM symbols WHERE symbol = :symbol', symbol=symbol['symbol'])[0]['id']
+
+        is_already_in_stock = db.execute('SELECT * FROM transactions WHERE symbol_id = :symbol_id AND user_id = :user_id', symbol_id=symbol_id, user_id=session.get('user_id'))
+        if is_already_in_stock:
+            shares = is_already_in_stock[0]['shares'] + int(request.form.get("shares"))
+            db.execute('UPDATE transactions SET shares = :shares WHERE symbol_id = :symbol_id AND user_id = :user_id', shares=shares, symbol_id=symbol_id, user_id=session.get('user_id'))
+        else:
+            # add the transaction to the table
+            db.execute('INSERT INTO transactions (user_id, symbol_id, shares) VALUES (:user_id, :symbol_id, :shares)', user_id=session.get('user_id'), symbol_id=symbol_id, shares=int(request.form.get("shares")))
         
         # update the user's cash
         db.execute('UPDATE users SET cash = :cash WHERE id = :id',
                    cash=cash_left, id=session.get('user_id'))
         
-        return render_template('index.html')
+        return redirect('/')
+    
     else:
-        print(session)
         return render_template('buy.html')
 
 
@@ -187,7 +205,7 @@ def register_user():
 
     # Insert new user in the database
     hash_password = generate_password_hash(request.form.get('password'))
-    rows = db.execute("INSERT INTO users (username, hash) VALUES(:username, :hash) ", username=username, hash=hash_password)
+    db.execute("INSERT INTO users (username, hash) VALUES(:username, :hash) ", username=username, hash=hash_password)
 
     # Redirect user to home page
     return redirect("/")
