@@ -1,43 +1,29 @@
-nav .navbar-brand
-{
-    /* size for brand */
-    font-size: xx-large;
+a:hover {
+    text-decoration: none;
+    color: #3c3c3c;
 }
 
 /* colors for brand */
-nav .navbar-brand .blue
+nav .brand-logo .blue-letter
 {
-    color: #537fbe;
+    color: #1252ad;
 }
-nav .navbar-brand .red
+nav .brand-logo .red-letter
 {
-    color: #ea433b;
+    color: #b10700;
 }
-nav .navbar-brand .yellow
+nav .brand-logo .yellow-letter
 {
     color: #f5b82e;
 }
-nav .navbar-brand .green
+nav .brand-logo .green-letter
 {
-    color: #2e944b;
+    color: whitesmoke;
 }
 
-main .form-control
-{
-    /* center form controls */
-    display: inline-block;
-
-    /* override Bootstrap's 100% width for form controls */
-    width: auto;
-}
-
-main
-{
-    /* scroll horizontally as needed */
-    overflow-x: auto;
-
-    /* center contents */
-    text-align: center;
+form {
+    width: 30%;
+    margin: auto;
 }
 
 main img

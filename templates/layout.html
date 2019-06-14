@@ -14,38 +14,37 @@
         <!-- https://favicon.io/emoji-favicons/money-mouth-face/ -->
         <link href="/static/favicon.ico" rel="icon">
 
-        <link href="/static/styles.css" rel="stylesheet">
-
-        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+        <!-- <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script> -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-
+        <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script> -->
+        
+        <link href="/static/styles.css" rel="stylesheet">
+        
         <title>C$50 Finance: {% block title %}{% endblock %}</title>
 
     </head>
 
     <body>
-
-        <nav class="navbar navbar-expand-md navbar-light bg-light border">
-            <a class="navbar-brand" href="/"><span class="blue">C</span><span class="red">$</span><span class="yellow">5</span><span class="green">0</span> <span class="red">Finance</span></a>
-            <button aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#navbar" data-toggle="collapse" type="button">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbar">
+        <nav class="teal">
+            <div class="nav-wrapper">
                 {% if session.user_id %}
-                    <ul class="navbar-nav mr-auto mt-2">
-                        <li class="nav-item"><a class="nav-link" href="/quote">Quote</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/buy">Buy</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/sell">Sell</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/history">History</a></li>
+                <a class="brand-logo center" href="/"><span class="blue-letter">C</span><span class="red-letter">$</span><span class="yellow-letter">5</span><span class="green-letter">0</span> <span class="red-letter">Finance</span></a>
+                    <ul id="nav-mobile" class="left hide-on-med-and-down">
+                        <li><a href="/quote">Quote</a></li>
+                        <li><a href="/buy">Buy</a></li>
+                        <li><a href="/sell">Sell</a></li>
+                        <li><a href="/history">History</a></li>
                     </ul>
-                    <ul class="navbar-nav ml-auto mt-2">
-                        <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
+                    <ul id="nav-mobile" class="right hide-on-med-and-down">
+                        <li><a href="/logout">Log out</a></li>
                     </ul>
                 {% else %}
-                    <ul class="navbar-nav ml-auto mt-2">
-                        <li class="nav-item"><a class="nav-link" href="/register">Register</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/login">Log In</a></li>
+                    <ul class="right hide-on-med-and-down">
+                        <li><a href="/register">Register</a></li>
+                        <li><a href="/login">Log In</a></li>
                     </ul>
                 {% endif %}
             </div>
@@ -60,7 +59,9 @@
         {% endif %}
 
         <main class="container p-5">
-            {% block main %}{% endblock %}
+            <div class="row">
+                {% block main %}{% endblock %}
+            </div>
         </main>
         
         <footer class="small text-center text-muted">

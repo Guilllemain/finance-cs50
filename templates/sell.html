@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Sell
+{% endblock %}
+
+{% block main %}
+    <form action="/sell" method="post" class="center-align">
+        <div class="input-field mb-4">
+            <select name="symbol">
+                <option disabled selected>Select your symbol</option>
+                {% for symbol in symbols %}
+                    {% if symbol['sum'] > 0 %}
+                        <option value="{{ symbol['symbol'] }}">{{ symbol['symbol'] }} ({{ symbol['sum'] }})</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+            <label for="symbol">Sell stock</label>
+        </div>
+        <div class="input-field">
+            <input autocomplete="off" autofocus name="shares" type="number">
+            <label for="shares">Shares</label>
+        </div>
+        <button class="btn btn-primary" type="submit">Sell</button>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var elems = document.querySelectorAll('select');
+            var instances = M.FormSelect.init(elems);
+        });
+    </script>
+{% endblock %}

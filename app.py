@@ -41,20 +41,23 @@ db = SQL("sqlite:///finance.db")
 def index():
     """Show portfolio of stocks"""
     stocks = []
-    cash_left = usd(db.execute(
-        'SELECT cash FROM users WHERE id = :id', id=session.get('user_id'))[0]['cash'])
-    transactions = db.execute('SELECT * FROM transactions WHERE user_id = :user_id', user_id=session.get('user_id'))
+    cash_left = db.execute(
+        'SELECT cash FROM users WHERE id = :id', id=session.get('user_id'))[0]['cash']
+    transactions = db.execute(
+        'SELECT *, SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id GROUP BY symbols.symbol', user_id=session.get('user_id'))
+    wallet_value = cash_left
     if transactions:
         for transaction in transactions:
-            symbol = db.execute('SELECT symbol FROM symbols WHERE id = :id', id=transaction['symbol_id'])[0]['symbol']
+            symbol = transaction['symbol']
             action = lookup(symbol)
             name = action['name']
-            price = usd(action['price'])
-            shares = transaction['shares']
-            total = usd(float(shares) * action['price'])
+            price = action['price']
+            shares = transaction['sum']
+            total = float(shares) * action['price']
             stocks.append({ 'symbol': symbol, 'name': name, 'shares': shares, 'price': price, 'total': total })
+            wallet_value += total
 
-    return render_template("index.html", stocks=stocks, cash=cash_left)
+    return render_template("index.html", stocks=stocks, cash=cash_left, wallet_value=wallet_value)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -67,7 +70,6 @@ def buy():
             return apology('Symbol does not exists', 403)
         if not request.form.get("shares"):
             return apology('You must provide a positive number', 403)
-        
         # total cost of the transaction
         total = float(request.form.get("shares")) * symbol['price']
         
@@ -88,18 +90,14 @@ def buy():
         # get the id from the requested symbol
         symbol_id = db.execute('SELECT id FROM symbols WHERE symbol = :symbol', symbol=symbol['symbol'])[0]['id']
 
-        is_already_in_stock = db.execute('SELECT * FROM transactions WHERE symbol_id = :symbol_id AND user_id = :user_id', symbol_id=symbol_id, user_id=session.get('user_id'))
-        if is_already_in_stock:
-            shares = is_already_in_stock[0]['shares'] + int(request.form.get("shares"))
-            db.execute('UPDATE transactions SET shares = :shares WHERE symbol_id = :symbol_id AND user_id = :user_id', shares=shares, symbol_id=symbol_id, user_id=session.get('user_id'))
-        else:
-            # add the transaction to the table
-            db.execute('INSERT INTO transactions (user_id, symbol_id, shares) VALUES (:user_id, :symbol_id, :shares)', user_id=session.get('user_id'), symbol_id=symbol_id, shares=int(request.form.get("shares")))
+        # add the transaction to the table
+        db.execute('INSERT INTO transactions (user_id, symbol_id, shares, price) VALUES (:user_id, :symbol_id, :shares, :price)', user_id=session.get('user_id'), symbol_id=symbol_id, shares=int(request.form.get("shares")), price=symbol['price'])
         
         # update the user's cash
         db.execute('UPDATE users SET cash = :cash WHERE id = :id',
                    cash=cash_left, id=session.get('user_id'))
-        
+        flash('You successfully bought {} shares of {}'.format(
+            request.form.get("shares"), symbol["symbol"]))
         return redirect('/')
     
     else:
@@ -109,14 +107,30 @@ def buy():
 @app.route("/check", methods=["GET"])
 def check():
     """Return true if username available, else false, in JSON format"""
-    return jsonify("TODO")
+    username = request.args.get('username')
+    is_username_taken = db.execute('SELECT * FROM users WHERE username = :username', username=username)
+    if is_username_taken or len(username) < 1:
+        return jsonify(False)
+    return jsonify(True)
 
 
 @app.route("/history")
 @login_required
 def history():
     """Show history of transactions"""
-    return apology("TODO")
+    stocks = []
+    transactions = db.execute(
+        'SELECT * FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id', user_id=session.get('user_id'))
+    if transactions:
+        for transaction in transactions:
+            symbol = transaction['symbol']
+            price = transaction['price']
+            shares = transaction['shares']
+            date = transaction['date']
+            total = float(abs(shares)) * transaction['price']
+            stocks.append({'symbol': symbol, 'shares': shares, 'price': price, 'date': date, 'total': total})
+
+    return render_template("history.html", stocks=stocks)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -149,6 +163,7 @@ def login():
         session["user_id"] = rows[0]["id"]
 
         # Redirect user to home page
+        flash('You successfully logged in')
         return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
@@ -175,7 +190,7 @@ def quote():
         symbol = lookup(request.form.get('symbol'))
         if not symbol:
             return apology('Symbol does not exists', 403)
-        quote = { 'name': symbol['name'], 'symbol': symbol['symbol'], 'price': usd(symbol['price']) }
+        quote = { 'name': symbol['name'], 'symbol': symbol['symbol'], 'price': symbol['price'] }
         return render_template('quoted.html', quote=quote)
     else:
         return render_template('quote.html')
@@ -208,13 +223,44 @@ def register_user():
     db.execute("INSERT INTO users (username, hash) VALUES(:username, :hash) ", username=username, hash=hash_password)
 
     # Redirect user to home page
+    flash('You successfully registered')
     return redirect("/")
 
 @app.route("/sell", methods=["GET", "POST"])
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+    if request.method == "POST":
+        symbol = request.form.get('symbol')
+        symbol_info = lookup(symbol)
+        shares = int(request.form.get('shares'))
+
+        # get the number of shares associated with this symbol
+        stock = db.execute(
+            'SELECT *, SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id AND symbols.symbol = :symbol GROUP BY symbols.symbol', user_id=session.get('user_id'), symbol=symbol)[0]
+        
+        # return an error if the user doesn't have enough shares or the input is not a positive integer
+        if stock['sum'] < shares or shares < 0:
+            return apology('NOT ENOUGH SHARES', 403)
+        
+        # update the number of shares in the transactions table                        
+        else:
+            db.execute('INSERT INTO transactions (user_id, symbol_id, shares, price) VALUES (:user_id, :symbol_id, :shares, :price)',
+                       user_id=session.get('user_id'), symbol_id=stock['symbol_id'], shares=-shares, price=symbol_info['price'])
+        
+        # update user's cash
+        symbol_value = symbol_info['price'] * shares
+        db.execute('UPDATE users SET cash = cash + :cash WHERE id = :id',
+                   cash=symbol_value, id=session.get('user_id'))
+
+        flash('You successfully sold {} shares of {}'.format(
+            shares, symbol))
+        return redirect('/')
+
+    else:
+        symbols = db.execute(
+            'SELECT *, SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id GROUP BY symbols.symbol', user_id=session.get('user_id'))
+        return render_template('sell.html', symbols=symbols)
 
 
 def errorhandler(e):

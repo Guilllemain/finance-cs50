@@ -6,9 +6,10 @@
 
 {% block main %}
     <form action="/quote" method="post">
-        <div class="form-group">
-            <input autocomplete="off" autofocus class="form-control" name="symbol" placeholder="Symbol" type="text">
+        <div class="input-field">
+            <input autocomplete="off" autofocus name="symbol"type="text">
+            <label for="symbol">Symbol</label>
         </div>
-        <button class="btn btn-primary" type="submit">Quote</button>
+        <button class="waves-effect waves-light btn" type="submit">Quote</button>
     </form>
 {% endblock %}
