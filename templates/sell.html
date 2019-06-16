@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block main %}
-    <form action="/sell" method="post" class="center-align">
+    <form action="/sell" method="post" class="col s4 offset-s4 center-align">
         <div class="input-field mb-4">
             <select name="symbol">
                 <option disabled selected>Select your symbol</option>
@@ -17,7 +17,7 @@
             </select>
             <label for="symbol">Sell stock</label>
         </div>
-        <div class="input-field">
+        <div class="input-field mt-2">
             <input autocomplete="off" autofocus name="shares" type="number">
             <label for="shares">Shares</label>
         </div>

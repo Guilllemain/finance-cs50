@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import apology, login_required, lookup, usd
+from helpers import apology, login_required, lookup, usd, chart
 
 # Configure application
 app = Flask(__name__)
@@ -36,6 +36,13 @@ Session(app)
 db = SQL("sqlite:///finance.db")
 
 
+@app.route("/test")
+def test():
+    res = chart('NFLX', '1m')
+    labels = [result['label'] for result in res]
+    values = [result['open'] for result in res]
+    return render_template('chart.html', results=res, labels=labels, values=values)
+
 @app.route("/")
 @login_required
 def index():
@@ -48,14 +55,18 @@ def index():
     wallet_value = cash_left
     if transactions:
         for transaction in transactions:
-            symbol = transaction['symbol']
-            action = lookup(symbol)
-            name = action['name']
-            price = action['price']
-            shares = transaction['sum']
-            total = float(shares) * action['price']
-            stocks.append({ 'symbol': symbol, 'name': name, 'shares': shares, 'price': price, 'total': total })
-            wallet_value += total
+            if transaction['sum'] > 0:
+                symbol = transaction['symbol']
+                action = lookup(symbol)
+                name = action['name']
+                price = action['price']
+                shares = transaction['sum']
+                bought = transaction['price']
+                total = float(shares) * action['price']
+                variation = round(
+                    ((total - (float(shares) * bought)) / (float(shares) * bought)) * 100, 2)
+                stocks.append({ 'symbol': symbol, 'name': name, 'shares': shares, 'price': price, 'bought': bought, 'total': total, 'variation': variation })
+                wallet_value += total
 
     return render_template("index.html", stocks=stocks, cash=cash_left, wallet_value=wallet_value)
 

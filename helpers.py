@@ -39,7 +39,8 @@ def lookup(symbol):
 
     # Contact API
     try:
-        response = requests.get(f"https://api.iextrading.com/1.0/stock/{urllib.parse.quote_plus(symbol)}/quote")
+        response = requests.get(
+            f"https://cloud.iexapis.com/stable/stock/{urllib.parse.quote_plus(symbol)}/quote?token=pk_5090c32b331348cf8e034e7fa7a140fd")
         response.raise_for_status()
     except requests.RequestException:
         return None
@@ -52,6 +53,24 @@ def lookup(symbol):
             "price": float(quote["latestPrice"]),
             "symbol": quote["symbol"]
         }
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def chart(symbol, timeframe):
+    """Look up quote for symbol."""
+
+    # Contact API
+    try:
+        response = requests.get(
+            f"https://cloud.iexapis.com/stable/stock/{symbol}/chart/{timeframe}?token=pk_5090c32b331348cf8e034e7fa7a140fd")
+        response.raise_for_status()
+    except requests.RequestException:
+        return None
+
+    # Parse response
+    try:
+        return response.json()
     except (KeyError, TypeError, ValueError):
         return None
 

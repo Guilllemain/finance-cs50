@@ -21,9 +21,12 @@ nav .brand-logo .green-letter
     color: whitesmoke;
 }
 
-form {
+table th, table td {
+    padding: .5em;
+}
+.search-form {
     width: 30%;
-    margin: auto;
+    display: inline-block;
 }
 
 main img
@@ -31,3 +34,28 @@ main img
     /* constrain images on small screens */
     max-width: 100%;
 }
+
+.alert {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    background-color: rgb(158, 158, 158);
+    padding: 1.2rem;
+    border-radius: .2rem;
+    transition: all .3s ease-in-out;
+    animation: fade_out 3s forwards;
+}
+
+@keyframes fade_out {
+    90% {opacity: 1; display: block; visibility: visible;}
+    100% {opacity: 0; display: none; visibility: hidden;}
+}
+
+.text-xs {font-size: smaller}
+
+.text-green {color: green;}
+.text-red {color: red;}
+
+.mt-2 {margin-top: 2rem;}
+.mt-3 {margin-top: 3rem;}
+.mt-4 {margin-top: 4rem;}
