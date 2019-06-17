@@ -57,24 +57,6 @@ def lookup(symbol):
         return None
 
 
-def chart(symbol, timeframe):
-    """Look up quote for symbol."""
-
-    # Contact API
-    try:
-        response = requests.get(
-            f"https://cloud.iexapis.com/stable/stock/{symbol}/chart/{timeframe}?token=pk_5090c32b331348cf8e034e7fa7a140fd")
-        response.raise_for_status()
-    except requests.RequestException:
-        return None
-
-    # Parse response
-    try:
-        return response.json()
-    except (KeyError, TypeError, ValueError):
-        return None
-
-
 def usd(value):
     """Format value as USD."""
     return f"${value:,.2f}"

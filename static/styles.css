@@ -24,9 +24,49 @@ nav .brand-logo .green-letter
 table th, table td {
     padding: .5em;
 }
+
 .search-form {
     width: 30%;
     display: inline-block;
+}
+
+nav .input-field label {
+    top: -.6rem;
+    left: .6rem;
+}
+
+#search {
+    position: relative;
+}
+
+#search:focus ~ .label-icon.active > i {
+    color: #444;
+}
+
+.search__results {
+    width: 100%;
+    z-index: 99;
+    background-color: white;
+    position: absolute;
+    top: 64px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+.search__results span {
+    font-weight: 800;
+}
+
+.search__results a {
+    color: #3c3c3c;
+}
+
+.search__results li {
+    width: 100%;
+}
+
+.search__results li:hover {
+    background-color: rgba(0,0,0,0.1)
 }
 
 main img
@@ -59,3 +99,11 @@ main img
 .mt-2 {margin-top: 2rem;}
 .mt-3 {margin-top: 3rem;}
 .mt-4 {margin-top: 4rem;}
+
+
+
+
+/* CHART */
+#main {
+    margin: auto;
+}

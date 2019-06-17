@@ -38,10 +38,7 @@ db = SQL("sqlite:///finance.db")
 
 @app.route("/test")
 def test():
-    res = chart('NFLX', '1m')
-    labels = [result['label'] for result in res]
-    values = [result['open'] for result in res]
-    return render_template('chart.html', results=res, labels=labels, values=values)
+    return render_template('chart.html')
 
 @app.route("/")
 @login_required

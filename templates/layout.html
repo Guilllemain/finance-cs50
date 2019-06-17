@@ -26,6 +26,8 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
         
         <link href="/static/styles.css" rel="stylesheet">
+
+        <script src="/static/app.js" defer></script>
         
         <title>C$50 Finance: {% block title %}{% endblock %}</title>
 
@@ -37,7 +39,10 @@
                 <!-- <a class="brand-logo" href="/"><span class="blue-letter">C</span><span class="red-letter">$</span><span class="yellow-letter">5</span><span class="green-letter">0</span> <span class="red-letter">Finance</span></a> -->
                 <form action="/quote" method="POST" class="search-form">
                     <div class="input-field">
-                        <input id="search" type="search" name="symbol" required placeholder="Search for symbols">
+                        <input id="search" type="search" name="symbol" required placeholder="Search for symbol or name">
+                        <ul class="search__results">
+                            <!-- generated results -->
+                        </ul>
                         <label class="label-icon" for="search"><i class="material-icons">search</i></label>
                         <i class="material-icons">close</i>
                     </div>
@@ -78,7 +83,6 @@
         <footer class="text-xs center-align mt-4">
             Data provided for free by <a href="https://iextrading.com/developer">IEX</a>. View <a href="https://iextrading.com/api-exhibit-a/">IEX’s Terms of Use</a>.
         </footer>
-        
     </body>
 
 </html>
