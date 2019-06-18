@@ -39,4 +39,4 @@ const selectSymbol = () => {
 
 searchInput.addEventListener('keydown', _.debounce(function() {
     showResults()
-}, 100))
+}, 400))

@@ -36,10 +36,6 @@ Session(app)
 db = SQL("sqlite:///finance.db")
 
 
-@app.route("/test")
-def test():
-    return render_template('chart.html')
-
 @app.route("/")
 @login_required
 def index():

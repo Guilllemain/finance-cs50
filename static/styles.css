@@ -106,4 +106,18 @@ main img
 /* CHART */
 #chart {
     margin: auto;
+    margin-top: 2rem;
+}
+
+.chart__periods {
+    list-style: none;
+    text-align: center;
+}
+
+.chart__periods li {
+    display: inline;
+}
+
+.chart__periods li:not(:last-of-type) {
+    margin-right: 1rem;
 }
