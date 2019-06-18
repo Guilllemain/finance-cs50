@@ -14,18 +14,27 @@ getSymbols()
 const showResults = () => {
     container.innerHTML = ''
     const value = searchInput.value.toLowerCase()
-    console.log(value, symbols)
     if (!value || value.length <= 1) return
     let results = symbols.filter(el => el.symbol.toLowerCase().includes(value) || el.name.toLowerCase().includes(value))
     if (results.length > 5) results = results.slice(0, 5)
     results.forEach(el => {
         const list = document.createElement('li')
         const link = document.createElement('a')
+        link.classList.add('link__result')
         const span = document.createElement('span')
         link.innerHTML = `<span>${el.symbol}</span> | ${el.name}`
         list.appendChild(link)
         container.appendChild(list)
     });
+    selectSymbol()
+}
+
+const selectSymbol = () => {
+    document.querySelectorAll('.link__result').forEach(link => link.addEventListener('click', function () {
+        searchInput.value = this.querySelector('span').innerHTML
+        searchInput.focus()
+        container.innerHTML = ''
+    }))
 }
 
 searchInput.addEventListener('keydown', _.debounce(function() {

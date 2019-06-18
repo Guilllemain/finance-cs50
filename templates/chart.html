@@ -1,9 +1,13 @@
 {% extends "layout.html" %}
 
+{% block scripts %}
+    <script src="/static/chart.js" defer></script>
+{% endblock %}
+
 {% block title %}
-    Quote
+    Chart
 {% endblock %}
 
 {% block main %}
-    <div id="main" style="width:900px; height:600px;"></div>
+    <div id="chart" style="width:900px; height:600px;"></div>
 {% endblock %}
