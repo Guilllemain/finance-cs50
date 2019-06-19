@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import apology, login_required, lookup, usd
+from helpers import apology, login_required, lookup, usd, fetchNews
 
 # Configure application
 app = Flask(__name__)
@@ -37,8 +37,12 @@ db = SQL("sqlite:///finance.db")
 
 
 @app.route("/")
-@login_required
 def index():
+    return render_template('home.html')
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
     """Show portfolio of stocks"""
     stocks = []
     cash_left = db.execute(
@@ -61,7 +65,7 @@ def index():
                 stocks.append({ 'symbol': symbol, 'name': name, 'shares': shares, 'price': price, 'bought': bought, 'total': total, 'variation': variation })
                 wallet_value += total
 
-    return render_template("index.html", stocks=stocks, cash=cash_left, wallet_value=wallet_value)
+    return render_template("dashboard.html", stocks=stocks, cash=cash_left, wallet_value=wallet_value)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -191,11 +195,11 @@ def logout():
 def quote():
     """Get stock quote."""
     if request.method == "POST":
-        symbol = lookup(request.form.get('symbol'))
-        if not symbol:
+        quote = lookup(request.form.get('symbol'))
+        if not quote:
             return apology('Symbol does not exists', 403)
-        quote = { 'name': symbol['name'], 'symbol': symbol['symbol'], 'price': symbol['price'] }
-        return render_template('quoted.html', quote=quote)
+        news = fetchNews(quote['symbol'], 3)
+        return render_template('quoted.html', quote=quote, news=news)
     else:
         return render_template('quote.html')
 

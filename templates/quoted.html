@@ -12,16 +12,35 @@
     <div class="center-align">A share of {{ quote.name }} | <span>{{ quote.symbol }}</span> costs {{ quote.price|usd }} </div>
 
     <ul class="chart__periods" data-symbol="{{ quote.symbol }}">
-        <li><a data-period="ytd" href="">Yersteday</a></li>
-        <li><a data-period="1w" href="">1 week</a></li>
-        <li><a data-period="1m" href="">1 month</a></li>
-        <li><a data-period="3m" href="">3 months</a></li>
-        <li><a data-period="6m" href="">6 months</a></li>
-        <li><a data-period="1y" href="">1 year</a></li>
-        <li><a data-period="3y" href="">3 years</a></li>
-        <li><a data-period="5y" href="">5 years</a></li>
-        <li><a data-period="forever" href="">All time</a></li>
+        <li><a class="waves-effect waves-light btn-small" data-period="ytd" href="">Yersteday</a></li>
+        <li><a class="waves-effect waves-light btn-small" data-period="1w" href="">1 week</a></li>
+        <li><a class="waves-effect waves-light btn-small" data-period="1m" href="">1 month</a></li>
+        <li><a class="waves-effect waves-light btn-small" data-period="3m" href="">3 months</a></li>
+        <li><a class="waves-effect waves-light btn-small" data-period="6m" href="">6 months</a></li>
+        <li><a class="waves-effect waves-light btn-small" data-period="1y" href="">1 year</a></li>
+        <li><a class="waves-effect waves-light btn-small" data-period="3y" href="">3 years</a></li>
+        <li><a class="waves-effect waves-light btn-small" data-period="5y" href="">5 years</a></li>
+        <li><a class="waves-effect waves-light btn-small" data-period="forever" href="">All time</a></li>
     </ul>
     <div id="chart" style="width:900px; height:600px;"></div>
+
+    {% for n in news %}
+        <div class="col s12">
+            <div class="card horizontal">
+                <div class="card-image">
+                    <img src="{{ n['image']}}">
+                </div>
+                <div class="card-stacked">
+                    <div class="card-content">
+                        <span class="card-title">{{ n['headline'] }}</span>
+                        <p>{{ n['summary'] }}</p>
+                    </div>
+                    <div class="card-action">
+                        <a href="{{ n['url'] }}">{{ n['source'] }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
 
 {% endblock %}
