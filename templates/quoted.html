@@ -9,38 +9,54 @@
 {% endblock %}
 
 {% block main %}
-    <div class="center-align">A share of {{ quote.name }} | <span>{{ quote.symbol }}</span> costs {{ quote.price|usd }} </div>
-
-    <ul class="chart__periods" data-symbol="{{ quote.symbol }}">
-        <li><a class="waves-effect waves-light btn-small" data-period="ytd" href="">Yersteday</a></li>
-        <li><a class="waves-effect waves-light btn-small" data-period="1w" href="">1 week</a></li>
-        <li><a class="waves-effect waves-light btn-small" data-period="1m" href="">1 month</a></li>
-        <li><a class="waves-effect waves-light btn-small" data-period="3m" href="">3 months</a></li>
-        <li><a class="waves-effect waves-light btn-small" data-period="6m" href="">6 months</a></li>
-        <li><a class="waves-effect waves-light btn-small" data-period="1y" href="">1 year</a></li>
-        <li><a class="waves-effect waves-light btn-small" data-period="3y" href="">3 years</a></li>
-        <li><a class="waves-effect waves-light btn-small" data-period="5y" href="">5 years</a></li>
-        <li><a class="waves-effect waves-light btn-small" data-period="forever" href="">All time</a></li>
-    </ul>
-    <div id="chart" style="width:900px; height:600px;"></div>
-
-    {% for n in news %}
-        <div class="col s12">
-            <div class="card horizontal">
-                <div class="card-image">
-                    <img src="{{ n['image']}}">
-                </div>
-                <div class="card-stacked">
-                    <div class="card-content">
-                        <span class="card-title">{{ n['headline'] }}</span>
-                        <p>{{ n['summary'] }}</p>
-                    </div>
-                    <div class="card-action">
-                        <a href="{{ n['url'] }}">{{ n['source'] }}</a>
-                    </div>
-                </div>
+    <div class="symbol-page-header">
+        <h1 class="symbol-page-header__title">
+            <span class="symbol-page-header__symbol">{{ quote.symbol }}</span>
+            <span class="symbol-page-header__name">{{ quote.companyName }}</span>
+        </h1>
+        <div class="symbol-page-header__price">
+            <svg class="{%if variation['value'] >= 0 %}symbol-page-header__icon-up{% else %}symbol-page-header__icon-down{% endif %}" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                <path fill="none" d="M0 0h24v24H0z" />
+                <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z" />
+            </svg>
+            <span>{{ quote.latestPrice|usd }}</span>
+            <div class="symbol-page-header__variations {%if variation['value'] >= 0 %}symbol-page-header__variations-positive{% endif %}">
+                <span>{{ variation['value'] }}</span>
+                <span>{{ variation['perc'] }}%</span>
             </div>
         </div>
-    {% endfor %}
+    </div>
+
+    <div class="col s8">
+        <div class="chart-container">
+            <div class="chart-controls">
+                <h3>{{ quote['symbol'] }}</h3>
+                <ul class="chart__periods" data-symbol="{{ quote.symbol }}">
+                    <li><a class="waves-effect waves-light btn-small btn-chart--active" data-period="ytd" href="">YTD</a></li>
+                    <li><a class="waves-effect waves-light btn-small" data-period="1w" href="">1W</a></li>
+                    <li><a class="waves-effect waves-light btn-small" data-period="1m" href="">1M</a></li>
+                    <li><a class="waves-effect waves-light btn-small" data-period="3m" href="">3M</a></li>
+                    <li><a class="waves-effect waves-light btn-small" data-period="6m" href="">6M</a></li>
+                    <li><a class="waves-effect waves-light btn-small" data-period="1y" href="">1Y</a></li>
+                    <li><a class="waves-effect waves-light btn-small" data-period="3y" href="">3Y</a></li>
+                    <li><a class="waves-effect waves-light btn-small" data-period="5y" href="">5Y</a></li>
+                    <li><a class="waves-effect waves-light btn-small" data-period="forever" href="">MAX</a></li>
+                </ul>
+            </div>
+            <div id="chart" style="width:100%; height:25vw;"></div>
+        </div>
+    </div>
+    <div class="col s3 offset-s1">
+        <div class="news">
+            <h3>Latest news</h3>
+            {% for n in news %}
+                <article class="news__element">
+                    <a href="{{ n['url'] }}">{{ n['headline'] }}</a>
+                    <p>{{ n['source'] }}</p>
+                </article>
+            {% endfor %}
+
+        </div>
+    </div>
 
 {% endblock %}

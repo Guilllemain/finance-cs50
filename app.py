@@ -198,8 +198,10 @@ def quote():
         quote = lookup(request.form.get('symbol'))
         if not quote:
             return apology('Symbol does not exists', 403)
-        news = fetchNews(quote['symbol'], 3)
-        return render_template('quoted.html', quote=quote, news=news)
+        variation = {'value': round(quote['latestPrice'] - quote['close'], 2), 'perc': round(((quote['latestPrice'] - quote['close']) / quote['close']) * 100, 2)}
+        print('HHHH', variation)
+        news = fetchNews(quote['symbol'], 5)
+        return render_template('quoted.html', quote=quote, news=news, variation=variation)
     else:
         return render_template('quote.html')
 
