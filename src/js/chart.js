@@ -33,17 +33,6 @@ const drawChart = (dates, values, period) => {
             type: 'value',
             scale: true,
         },
-        dataZoom: [{
-            type: 'slider',
-            xAxisIndex: 0,
-            filterMode: 'empty'
-        },
-            {
-                type: 'inside',
-                xAxisIndex: 0,
-                filterMode: 'empty'
-            }
-        ],
         series: [
             {
                 name: 'date',
