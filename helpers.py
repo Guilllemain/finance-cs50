@@ -70,6 +70,25 @@ def fetchNews(symbol, number = 10):
         return None
 
 
+def fetchDividends(symbol, timeframe='2y'):
+    """Fetch up latest news."""
+
+    # Contact API
+    try:
+        response = requests.get(
+            f"https://cloud.iexapis.com/stable/stock/{urllib.parse.quote_plus(symbol)}/dividends/{timeframe}?token=pk_5090c32b331348cf8e034e7fa7a140fd")
+        response.raise_for_status()
+    except requests.RequestException:
+        return None
+
+    # Parse response
+    try:
+        print('HHHHHHH4', response.json())
+        return response.json()
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
 def usd(value):
     """Format value as USD."""
     return f"${value:,.2f}"

@@ -1,26 +1,29 @@
 {% extends "layout.html" %}
 
 {% block scripts %}
-    <script src="/static/chart.js" defer></script>
+<script src="/static/chart.js" defer></script>
 {% endblock %}
 
 {% block title %}
-    Quoted
+Quoted
 {% endblock %}
 
 {% block main %}
+<div class="row">
     <div class="symbol-page-header">
         <h1 class="symbol-page-header__title">
             <span class="symbol-page-header__symbol">{{ quote.symbol }}</span>
             <span class="symbol-page-header__name">{{ quote.companyName }}</span>
         </h1>
         <div class="symbol-page-header__price">
-            <svg class="{%if variation['value'] >= 0 %}symbol-page-header__icon-up{% else %}symbol-page-header__icon-down{% endif %}" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <svg class="{%if variation['value'] >= 0 %}symbol-page-header__icon-up{% else %}symbol-page-header__icon-down{% endif %}"
+                xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                 <path fill="none" d="M0 0h24v24H0z" />
                 <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z" />
             </svg>
             <span>{{ quote.latestPrice|usd }}</span>
-            <div class="symbol-page-header__variations {%if variation['value'] >= 0 %}symbol-page-header__variations-positive{% endif %}">
+            <div
+                class="symbol-page-header__variations {%if variation['value'] >= 0 %}symbol-page-header__variations-positive{% endif %}">
                 <span>{{ variation['value'] }}</span>
                 <span>{{ variation['perc'] }}%</span>
             </div>
@@ -32,7 +35,9 @@
             <div class="chart-controls">
                 <h3>{{ quote['symbol'] }}</h3>
                 <ul class="chart__periods" data-symbol="{{ quote.symbol }}">
-                    <li><a class="waves-effect waves-light btn-small btn-chart--active" data-period="ytd" href="">YTD</a></li>
+                    <li><a class="waves-effect waves-light btn-small btn-chart--active" data-period="1d" href="">1D</a>
+                    </li>
+                    <li><a class="waves-effect waves-light btn-small" data-period="ytd" href="">YTD</a></li>
                     <li><a class="waves-effect waves-light btn-small" data-period="1w" href="">1W</a></li>
                     <li><a class="waves-effect waves-light btn-small" data-period="1m" href="">1M</a></li>
                     <li><a class="waves-effect waves-light btn-small" data-period="3m" href="">3M</a></li>
@@ -50,13 +55,45 @@
         <div class="news">
             <h3>Latest news</h3>
             {% for n in news %}
-                <article class="news__element">
-                    <a href="{{ n['url'] }}">{{ n['headline'] }}</a>
-                    <p>{{ n['source'] }}</p>
-                </article>
+            <article class="news__element">
+                <a href="{{ n['url'] }}">{{ n['headline'] }}</a>
+                <p><span>{{ n['source'] }}</span> - <span class="news__datetime">{{ n['datetime'] }}</span></p>
+            </article>
             {% endfor %}
 
         </div>
     </div>
-
+</div>
+{% if dividends %}
+<div class="row">
+    <div class="col s6">
+        <h3 class="dividend-title t-bar">Dividends history</h3>
+        <table>
+            <thead class="dividend-history__table-headings">
+                <tr class="dividend-history__row dividend-history__row--headings">
+                    <th class="dividend-history__table-heading" scope="col">EX DATE</th>
+                    <th class="dividend-history__table-heading" scope="col">CASH AMOUNT</th>
+                    <th class="dividend-history__table-heading" scope="col">DECLARATION DATE</th>
+                    <th class="dividend-history__table-heading" scope="col">RECORD DATE</th>
+                    <th class="dividend-history__table-heading" scope="col">PAYMENT DATE</th>
+                </tr>
+            </thead>
+            <tbody class="dividend-history__table-body">
+                {% for dividend in dividends %}
+                <tr class="dividend-history__row">
+                    <th scope="row" class="dividend-history__cell">{{ dividend['exDate'] }}</th>
+                    <td class="dividend-history__cell dividend-history__cell--amount">${{ dividend['amount'] }}</td>
+                    <td class="dividend-history__cell dividend-history__cell--declarationDate">
+                        {{ dividend['declaredDate'] }}</td>
+                    <td class="dividend-history__cell dividend-history__cell--recordDate">{{ dividend['recordDate'] }}
+                    </td>
+                    <td class="dividend-history__cell dividend-history__cell--paymentDate">{{ dividend['paymentDate'] }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

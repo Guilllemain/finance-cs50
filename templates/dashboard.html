@@ -27,7 +27,7 @@
             {% for stock in stocks %}
                 {% if stock['shares'] > 0 %}
                     <tr>
-                        <td>{{ stock['symbol'] }}</td>
+                        <td><a href="" class="dashboard__symbol">{{ stock['symbol'] }}</a></td>
                         <td>{{ stock['name'] }}</td>
                         <td>{{ stock['shares'] }}</td>
                         <td>{{ stock['bought']|usd }}</td>

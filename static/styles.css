@@ -122,6 +122,26 @@ main img
     background-color: #009688;
 }
 
+.chart__no-values {
+    font-size: 1.4rem;
+    margin-bottom: 4rem;
+}
+
+.t-bar::before {
+    content: '';
+    display: block;
+    background-color: #afafaf;
+    height: 1px;
+    width: 10%;
+    margin-bottom: 1rem;
+}
+
+.dividend-title {
+    text-transform: uppercase;
+    font-weight: 300;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+}
 
 @keyframes fade_out {
     90% {opacity: 1; display: block; visibility: visible;}
@@ -157,6 +177,7 @@ main img
     color: whitesmoke;
     padding: 1.2rem;
     border-radius: 2px;
+    margin-left: 10%;
 }
 
 .news h3 {
@@ -178,6 +199,16 @@ main img
 .news__element p {
     font-size: .9rem;
     color: #999;
+}
+
+.dividend-history__table-heading, .dividend-history__cell {
+    font-size: 0.8rem;
+    padding: 1rem 1.875rem 1.125rem 0;
+    font-weight: 300;
+}
+
+.dividend-history__cell--amount {
+    font-weight: 500;
 }
 
 .symbol-page-header {
@@ -223,6 +254,9 @@ main img
 
 #chart {
     margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .chart-controls {

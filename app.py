@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import apology, login_required, lookup, usd, fetchNews
+from helpers import apology, login_required, lookup, usd, fetchNews, fetchDividends
 
 # Configure application
 app = Flask(__name__)
@@ -55,11 +55,11 @@ def dashboard():
             if transaction['sum'] > 0:
                 symbol = transaction['symbol']
                 action = lookup(symbol)
-                name = action['name']
-                price = action['price']
+                name = action['companyName']
+                price = action['latestPrice']
                 shares = transaction['sum']
                 bought = transaction['price']
-                total = float(shares) * action['price']
+                total = float(shares) * action['latestPrice']
                 variation = round(
                     ((total - (float(shares) * bought)) / (float(shares) * bought)) * 100, 2)
                 stocks.append({ 'symbol': symbol, 'name': name, 'shares': shares, 'price': price, 'bought': bought, 'total': total, 'variation': variation })
@@ -193,15 +193,16 @@ def logout():
 @app.route("/quote", methods=["GET", "POST"])
 @login_required
 def quote():
+    print('hiii', request.form.get('symbol'))
     """Get stock quote."""
     if request.method == "POST":
         quote = lookup(request.form.get('symbol'))
         if not quote:
             return apology('Symbol does not exists', 403)
         variation = {'value': round(quote['latestPrice'] - quote['close'], 2), 'perc': round(((quote['latestPrice'] - quote['close']) / quote['close']) * 100, 2)}
-        print('HHHH', variation)
+        dividends = fetchDividends(quote['symbol'])
         news = fetchNews(quote['symbol'], 5)
-        return render_template('quoted.html', quote=quote, news=news, variation=variation)
+        return render_template('quoted.html', quote=quote, news=news, variation=variation, dividends=dividends)
     else:
         return render_template('quote.html')
 

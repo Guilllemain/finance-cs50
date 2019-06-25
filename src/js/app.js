@@ -37,6 +37,10 @@ const selectSymbol = () => {
     }))
 }
 
+document.querySelectorAll('.dashboard__symbol').forEach(el => el.addEventListener('click', function() {
+    axios.post('/quote', {symbol: this.innerHTML})
+}))
+
 searchInput.addEventListener('keydown', _.debounce(function() {
     showResults()
 }, 400))
