@@ -8,27 +8,29 @@
     {% if stocks|length <= 0 %}
         <div>You have no transactions yet</div>
     {% else %}
-        <table class="striped highlight responsive-table">
-            <thead>
-                <tr>
-                    <th scope="col">Symbol</th>
-                    <th scope="col">Shares</th>
-                    <th scope="col">Price</th>
-                    <th scope="col">Total</th>
-                    <th scope="col">Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for stock in stocks %}
+        <div class="row">
+            <table class="striped highlight responsive-table">
+                <thead>
                     <tr>
-                        <td>{{ stock['symbol'] }}</td>
-                        <td>{{ stock['shares'] }}</td>
-                        <td>{{ stock['price']|usd }}</td>
-                        <td>{{ stock['total']|usd }}</td>
-                        <td>{{ stock['date'] }}</td>
+                        <th scope="col">Symbol</th>
+                        <th scope="col">Shares</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Total</th>
+                        <th scope="col">Date</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for stock in stocks %}
+                        <tr>
+                            <td>{{ stock['symbol'] }}</td>
+                            <td>{{ stock['shares'] }}</td>
+                            <td>{{ stock['price']|usd }}</td>
+                            <td>{{ stock['total']|usd }}</td>
+                            <td>{{ stock['date'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {% endif %}
 {% endblock %}

@@ -1,6 +1,7 @@
 import os
 
 from cs50 import SQL
+from flask_cors import CORS
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from tempfile import mkdtemp
@@ -11,6 +12,7 @@ from helpers import apology, login_required, lookup, usd, fetchNews, fetchDivide
 
 # Configure application
 app = Flask(__name__)
+CORS(app, supports_credentials=True)
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -193,7 +195,6 @@ def logout():
 @app.route("/quote", methods=["GET", "POST"])
 @login_required
 def quote():
-    print('hiii', request.form.get('symbol'))
     """Get stock quote."""
     if request.method == "POST":
         quote = lookup(request.form.get('symbol'))

@@ -83,7 +83,6 @@ def fetchDividends(symbol, timeframe='2y'):
 
     # Parse response
     try:
-        print('HHHHHHH4', response.json())
         return response.json()
     except (KeyError, TypeError, ValueError):
         return None

@@ -5,15 +5,17 @@
 {% endblock %}
 
 {% block main %}
-    <form action="/buy" method="post" class="col s4 offset-s4 center-align">
-        <div class="input-field">
-            <input autocomplete="off" autofocus name="symbol" type="text">
-            <label for="symbol">Symbol</label>
-        </div>
-        <div class="input-field">
-            <input autocomplete="off" autofocus name="shares" type="number">
-            <label for="shares">Shares</label>
-        </div>
-        <button class="waves-effect waves-light btn" type="submit">Buy</button>
-    </form>
+    <div class="row">
+        <form action="/buy" method="post" class="col s4 offset-s4 center-align">
+            <div class="input-field">
+                <input autocomplete="off" autofocus name="symbol" type="text">
+                <label for="symbol">Symbol</label>
+            </div>
+            <div class="input-field">
+                <input autocomplete="off" autofocus name="shares" type="number">
+                <label for="shares">Shares</label>
+            </div>
+            <button class="waves-effect waves-light btn" type="submit">Buy</button>
+        </form>
+    </div>
 {% endblock %}

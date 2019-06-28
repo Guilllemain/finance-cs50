@@ -5,46 +5,48 @@
 {% endblock %}
 
 {% block main %}
-    <table class="striped hightlight responsive-table">
-        <thead>
-            <tr>
-                <th scope="col">Symbol</th>
-                <th scope="col">Name</th>
-                <th scope="col">Shares</th>
-                <th scope="col">Bought At</th>
-                <th scope="col">Price</th>
-                <th scope="col">Total</th>
-                <th scope="col">Variation</th>
-            </tr>
-        </thead>
-        <tfoot>
-            <tr>
-                <td colspan="6"></td>
-                <td>{{ wallet_value|usd }}</td>
-            </tr>
-        </tfoot>
-        <tbody>
-            {% for stock in stocks %}
-                {% if stock['shares'] > 0 %}
-                    <tr>
-                        <td><a href="" class="dashboard__symbol">{{ stock['symbol'] }}</a></td>
-                        <td>{{ stock['name'] }}</td>
-                        <td>{{ stock['shares'] }}</td>
-                        <td>{{ stock['bought']|usd }}</td>
-                        <td>{{ stock['price']|usd }}</td>
-                        <td>{{ stock['total']|usd }}</td>
-                        {% if stock['variation'] >= 0 %}
-                            <td class="text-green">{{ stock['variation'] }}%</td>
-                        {% else %}
-                            <td class="text-red">{{ stock['variation'] }}%</td>
-                        {% endif %}
-                    </tr>
-                {% endif %}
-            {% endfor %}
-            <tr>
-                <th colspan="6">CASH</th>
-                <td>{{ cash|usd }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="row">
+        <table class="striped hightlight responsive-table">
+            <thead>
+                <tr>
+                    <th scope="col">Symbol</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Shares</th>
+                    <th scope="col">Bought At</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Variation</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <td colspan="6"></td>
+                    <td>{{ wallet_value|usd }}</td>
+                </tr>
+            </tfoot>
+            <tbody>
+                {% for stock in stocks %}
+                    {% if stock['shares'] > 0 %}
+                        <tr>
+                            <td><a href="" class="dashboard__symbol">{{ stock['symbol'] }}</a></td>
+                            <td>{{ stock['name'] }}</td>
+                            <td>{{ stock['shares'] }}</td>
+                            <td>{{ stock['bought']|usd }}</td>
+                            <td>{{ stock['price']|usd }}</td>
+                            <td>{{ stock['total']|usd }}</td>
+                            {% if stock['variation'] >= 0 %}
+                                <td class="text-green">{{ stock['variation'] }}%</td>
+                            {% else %}
+                                <td class="text-red">{{ stock['variation'] }}%</td>
+                            {% endif %}
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+                <tr>
+                    <th colspan="6">CASH</th>
+                    <td>{{ cash|usd }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 {% endblock %}

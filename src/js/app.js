@@ -37,8 +37,15 @@ const selectSymbol = () => {
     }))
 }
 
-document.querySelectorAll('.dashboard__symbol').forEach(el => el.addEventListener('click', function() {
-    axios.post('/quote', {symbol: this.innerHTML})
+document.querySelectorAll('.dashboard__symbol').forEach(el => el.addEventListener('click', function(event) {
+    event.preventDefault()
+    const data = new FormData();
+    data.set('symbol', 'AAPL');
+    axios({
+        method: 'post',
+        url: '/quote',
+        data
+    }).then(res => console.log(res)).catch(er => console.log(er))
 }))
 
 searchInput.addEventListener('keydown', _.debounce(function() {

@@ -5,27 +5,29 @@
 {% endblock %}
 
 {% block main %}
-    <form action="/register" method="post" name="registration" class="col s4 offset-s4 center-align">
-        <div class="input-field">
-            <input autocomplete="off" autofocus name="username" type="text">
-            <label for="username">Username</label>
-            <div class="invalid-feedback">
-                Username already taken
+    <div class="row">
+        <form action="/register" method="post" name="registration" class="col s4 offset-s4 center-align">
+            <div class="input-field">
+                <input autocomplete="off" autofocus name="username" type="text">
+                <label for="username">Username</label>
+                <div class="invalid-feedback">
+                    Username already taken
+                </div>
             </div>
-        </div>
-        <div class="input-field">
-            <input name="password" type="password">
-            <label for="password">Password</label>
-        </div>
-        <div class="input-field">
-            <input name="password_confirmation" type="password">
-            <label for="password_confirmation">Confirm password</label>
-            <div class="invalid-feedback">
-                You must enter the same password
+            <div class="input-field">
+                <input name="password" type="password">
+                <label for="password">Password</label>
             </div>
-        </div>
-        <button class="waves-effect waves-light btn" type="submit">Register</button>
-    </form>
+            <div class="input-field">
+                <input name="password_confirmation" type="password">
+                <label for="password_confirmation">Confirm password</label>
+                <div class="invalid-feedback">
+                    You must enter the same password
+                </div>
+            </div>
+            <button class="waves-effect waves-light btn" type="submit">Register</button>
+        </form>
+    </div>
 
     <script>
         document.registration.addEventListener('submit', function(event) {
