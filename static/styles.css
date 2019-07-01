@@ -130,7 +130,7 @@ main img
 .t-bar::before {
     content: '';
     display: block;
-    background-color: #afafaf;
+    background-color: #009688;
     height: 1px;
     width: 10%;
     margin-bottom: 1rem;
@@ -281,4 +281,12 @@ main img
 
 .chart__periods li:not(:last-of-type) {
     margin-right: .2rem;
+}
+
+.symbol-page-header__details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 66.6666666667%;
+    padding-right: .75rem;
 }

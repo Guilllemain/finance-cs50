@@ -15,17 +15,24 @@ Quoted
             <span class="symbol-page-header__symbol">{{ quote.symbol }}</span>
             <span class="symbol-page-header__name">{{ quote.companyName }}</span>
         </h1>
-        <div class="symbol-page-header__price">
-            <svg class="{%if variation['value'] >= 0 %}symbol-page-header__icon-up{% else %}symbol-page-header__icon-down{% endif %}"
-                xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                <path fill="none" d="M0 0h24v24H0z" />
-                <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z" />
-            </svg>
-            <span>{{ quote.latestPrice|usd }}</span>
-            <div
-                class="symbol-page-header__variations {%if variation['value'] >= 0 %}symbol-page-header__variations-positive{% endif %}">
-                <span>{{ variation['value'] }}</span>
-                <span>{{ variation['perc'] }}%</span>
+        <div class="symbol-page-header__details">
+            <div class="symbol-page-header__price">
+                <svg class="{%if variation['value'] >= 0 %}symbol-page-header__icon-up{% else %}symbol-page-header__icon-down{% endif %}"
+                    xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                    <path fill="none" d="M0 0h24v24H0z" />
+                    <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z" />
+                </svg>
+                <span>{{ quote.latestPrice|usd }}</span>
+                <div
+                    class="symbol-page-header__variations {%if variation['value'] >= 0 %}symbol-page-header__variations-positive{% endif %}">
+                    <span>{{ variation['value'] }}</span>
+                    <span>{{ variation['perc'] }}%</span>
+                </div>
+            </div>
+            <div class="symbol-page-header__actions">
+                <!-- TODO --- Implement a modal with a form for each action -->
+                <button class="white-text btn teal">Buy</button>
+                <button class="white-text red darken-2 btn">Sell</button>
             </div>
         </div>
     </div>

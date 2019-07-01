@@ -38,14 +38,14 @@
         <nav class="teal">
             <div class="nav-wrapper">
                 <!-- <a class="brand-logo" href="/"><span class="blue-letter">C</span><span class="red-letter">$</span><span class="yellow-letter">5</span><span class="green-letter">0</span> <span class="red-letter">Finance</span></a> -->
-                <form action="/quote" method="POST" class="search-form">
+                <form action="/quote" method="POST" class="search-form" name="searchForm">
                     <div class="input-field">
-                        <input id="search" type="search" name="symbol" required placeholder="Search for symbol or name">
+                        <input id="search" type="search" name="symbol" autocomplete="off" required placeholder="Search for symbol or name">
                         <ul class="search__results">
                             <!-- generated results -->
                         </ul>
                         <label class="label-icon" for="search"><i class="material-icons">search</i></label>
-                        <i class="material-icons">close</i>
+                        <i class="material-icons" id="clearSearch">close</i>
                     </div>
                 </form>
                 {% if session.user_id %}

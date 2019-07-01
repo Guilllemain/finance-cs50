@@ -12,6 +12,7 @@ const getSymbols = async () => {
 getSymbols()
 
 const showResults = () => {
+    container.style.display = 'block'
     container.innerHTML = ''
     const value = searchInput.value.toLowerCase()
     if (!value || value.length <= 1) return
@@ -21,7 +22,6 @@ const showResults = () => {
         const list = document.createElement('li')
         const link = document.createElement('a')
         link.classList.add('link__result')
-        const span = document.createElement('span')
         link.innerHTML = `<span>${el.symbol}</span> | ${el.name}`
         list.appendChild(link)
         container.appendChild(list)
@@ -32,22 +32,31 @@ const showResults = () => {
 const selectSymbol = () => {
     document.querySelectorAll('.link__result').forEach(link => link.addEventListener('click', function () {
         searchInput.value = this.querySelector('span').innerHTML
+        document.searchForm.submit()
         searchInput.focus()
-        container.innerHTML = ''
+        container.style.display = 'none'
     }))
 }
-
-document.querySelectorAll('.dashboard__symbol').forEach(el => el.addEventListener('click', function(event) {
-    event.preventDefault()
-    const data = new FormData();
-    data.set('symbol', 'AAPL');
-    axios({
-        method: 'post',
-        url: '/quote',
-        data
-    }).then(res => console.log(res)).catch(er => console.log(er))
-}))
 
 searchInput.addEventListener('keydown', _.debounce(function() {
     showResults()
 }, 400))
+
+document.addEventListener('click', event => {
+    if (!event.target.matches('#search', '.search__results *')) {
+        container.style.display = 'none'
+    }
+})
+
+searchInput.addEventListener('focusin', () => container.style.display = 'block')
+
+document.querySelector('#clearSearch').addEventListener('click', () => {
+    searchInput.value = ''
+    container.innerHTML = ''
+    searchInput.focus()
+})
+
+document.querySelectorAll('.dashboard__symbol').forEach(el => el.addEventListener('click', function (event) {
+    event.preventDefault()
+    el.parentElement.submit()
+}))
