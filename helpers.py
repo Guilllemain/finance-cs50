@@ -34,14 +34,19 @@ def login_required(f):
     return decorated_function
 
 
-def lookup(symbol):
+def lookup(symbol, multiple = False):
     """Look up quote for symbol."""
 
     # Contact API
     try:
-        response = requests.get(
-            f"https://cloud.iexapis.com/stable/stock/{urllib.parse.quote_plus(symbol)}/quote?token=pk_5090c32b331348cf8e034e7fa7a140fd")
-        response.raise_for_status()
+        if not multiple:
+            response = requests.get(
+                f"https://cloud.iexapis.com/stable/stock/{urllib.parse.quote_plus(symbol)}/quote?token=pk_5090c32b331348cf8e034e7fa7a140fd")
+            response.raise_for_status()
+        else:
+            response = requests.get(
+                f"https://cloud.iexapis.com/stable/stock/market/batch?symbols={symbol}&types=quote&token=pk_5090c32b331348cf8e034e7fa7a140fd")
+            response.raise_for_status()
     except requests.RequestException:
         return None
 

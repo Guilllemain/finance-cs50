@@ -47,21 +47,27 @@ def index():
 def dashboard():
     """Show portfolio of stocks"""
     stocks = []
+
+    # get the cash left for the user
     cash_left = db.execute(
         'SELECT cash FROM users WHERE id = :id', id=session.get('user_id'))[0]['cash']
+
+    # extract all transactions from the database for this symbol with the average price and the total number of shares
     transactions = db.execute(
-        'SELECT *, SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id GROUP BY symbols.symbol', user_id=session.get('user_id'))
+        'SELECT *, AVG(price) as avg_price, SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id GROUP BY symbols.symbol', user_id=session.get('user_id'))
     wallet_value = cash_left
+    symbols_list = ','.join([el['symbol'] for el in transactions])
+    symbols_details = lookup(symbols_list, True)
+    
     if transactions:
         for transaction in transactions:
             if transaction['sum'] > 0:
                 symbol = transaction['symbol']
-                action = lookup(symbol)
-                name = action['companyName']
-                price = action['latestPrice']
+                name = symbols_details[symbol]['quote']['companyName']
+                price = symbols_details[symbol]['quote']['latestPrice']
                 shares = transaction['sum']
-                bought = transaction['price']
-                total = float(shares) * action['latestPrice']
+                bought = transaction['avg_price']
+                total = float(shares) * symbols_details[symbol]['quote']['latestPrice']
                 variation = round(
                     ((total - (float(shares) * bought)) / (float(shares) * bought)) * 100, 2)
                 stocks.append({ 'symbol': symbol, 'name': name, 'shares': shares, 'price': price, 'bought': bought, 'total': total, 'variation': variation })
@@ -70,48 +76,43 @@ def dashboard():
     return render_template("dashboard.html", stocks=stocks, cash=cash_left, wallet_value=wallet_value)
 
 
-@app.route("/buy", methods=["GET", "POST"])
+@app.route("/buy", methods=["POST"])
 @login_required
 def buy():
     """Buy shares of stock"""
-    if request.method == "POST":
-        symbol = lookup(request.form.get('symbol'))
-        if not symbol:
-            return apology('Symbol does not exists', 403)
-        if not request.form.get("shares"):
-            return apology('You must provide a positive number', 403)
-        # total cost of the transaction
-        total = float(request.form.get("shares")) * symbol['price']
-        
-        # get the cash from the user 
-        user_cash = db.execute('SELECT cash FROM users WHERE id = :id', id=session.get('user_id'))[0]['cash']
-
-        # check if the user can afford the stock
-        cash_left = user_cash - total
-        if (cash_left < 0):
-            return apology('You cannot afford it')
-
-        # insert the requested symbol into the symbol table if it doesn't exists
-        is_symbol_present = db.execute(
-            'SELECT symbol FROM symbols WHERE symbol = :symbol', symbol=symbol['symbol'])
-        if not is_symbol_present:
-            db.execute('INSERT INTO symbols (symbol) VALUES(:symbol)', symbol=symbol['symbol'])
-        
-        # get the id from the requested symbol
-        symbol_id = db.execute('SELECT id FROM symbols WHERE symbol = :symbol', symbol=symbol['symbol'])[0]['id']
-
-        # add the transaction to the table
-        db.execute('INSERT INTO transactions (user_id, symbol_id, shares, price) VALUES (:user_id, :symbol_id, :shares, :price)', user_id=session.get('user_id'), symbol_id=symbol_id, shares=int(request.form.get("shares")), price=symbol['price'])
-        
-        # update the user's cash
-        db.execute('UPDATE users SET cash = :cash WHERE id = :id',
-                   cash=cash_left, id=session.get('user_id'))
-        flash('You successfully bought {} shares of {}'.format(
-            request.form.get("shares"), symbol["symbol"]))
-        return redirect('/')
+    symbol = request.form.get('symbol')
+    price = request.form.get('price')
+    if not request.form.get("shares"):
+        return apology('You must provide a positive number', 403)
+    # total cost of the transaction
+    total = float(request.form.get("shares")) * float(price)
     
-    else:
-        return render_template('buy.html')
+    # get the cash from the user 
+    user_cash = db.execute('SELECT cash FROM users WHERE id = :id', id=session.get('user_id'))[0]['cash']
+
+    # check if the user can afford the stock
+    cash_left = user_cash - total
+    if (cash_left < 0):
+        return apology('You cannot afford it')
+
+    # insert the requested symbol into the symbol table if it doesn't exists
+    is_symbol_present = db.execute(
+        'SELECT symbol FROM symbols WHERE symbol = :symbol', symbol=symbol)
+    if not is_symbol_present:
+        db.execute('INSERT INTO symbols (symbol) VALUES(:symbol)', symbol=symbol)
+    
+    # get the id from the requested symbol
+    symbol_id = db.execute('SELECT id FROM symbols WHERE symbol = :symbol', symbol=symbol)[0]['id']
+
+    # add the transaction to the table
+    db.execute('INSERT INTO transactions (user_id, symbol_id, shares, price) VALUES (:user_id, :symbol_id, :shares, :price)', user_id=session.get('user_id'), symbol_id=symbol_id, shares=int(request.form.get("shares")), price=price)
+    
+    # update the user's cash
+    db.execute('UPDATE users SET cash = :cash WHERE id = :id',
+                cash=cash_left, id=session.get('user_id'))
+    flash('You successfully bought {} shares of {}'.format(
+        request.form.get("shares"), symbol))
+    return redirect('/')
 
 
 @app.route("/check", methods=["GET"])
@@ -192,23 +193,31 @@ def logout():
     return redirect("/")
 
 
-@app.route("/quote", methods=["GET", "POST"])
+@app.route("/quote", methods=["POST"])
 @login_required
 def quote():
     """Get stock quote."""
-    if request.method == "POST":
-        quote = lookup(request.form.get('symbol'))
-        if not quote:
-            return apology('Symbol does not exists', 403)
-        variation = {'value': round(quote['latestPrice'] - quote['close'], 2), 'perc': round(((quote['latestPrice'] - quote['close']) / quote['close']) * 100, 2)}
-        dividends = fetchDividends(quote['symbol'])
-        news = fetchNews(quote['symbol'], 5)
-        return render_template('quoted.html', quote=quote, news=news, variation=variation, dividends=dividends)
-    else:
-        return render_template('quote.html')
+    quote = lookup(request.form.get('symbol'))
+    if not quote:
+        return apology('Symbol does not exists', 403)
+
+    variation = {'value': round(quote['latestPrice'] - quote['close'], 2), 'perc': round(((quote['latestPrice'] - quote['close']) / quote['close']) * 100, 2)}
+    dividends = fetchDividends(quote['symbol'])
+    
+    # get all the news for this symbol
+    news = fetchNews(quote['symbol'], 5)
+
+    # check if there is any shares of this symbol in stock and save it in a variable
+    stock = db.execute(
+        'SELECT SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id AND symbols.symbol = :symbol GROUP BY symbols.symbol', user_id=session.get('user_id'), symbol=quote['symbol'])
+    qtyInStock = 0
+    if stock and stock[0]['sum'] > 0:
+        qtyInStock = stock[0]['sum']
+    
+    return render_template('quoted.html', quote=quote, news=news, variation=variation, dividends=dividends, qtyInStock=qtyInStock)
 
 
-@app.route("/register")
+@app.route("/register", methods=["GET"])
 def register():
     # User reached route via GET (as by clicking a link or via redirect)
     return render_template("register.html")
@@ -238,41 +247,36 @@ def register_user():
     flash('You successfully registered')
     return redirect("/")
 
-@app.route("/sell", methods=["GET", "POST"])
+
+@app.route("/sell", methods=["POST"])
 @login_required
 def sell():
     """Sell shares of stock"""
-    if request.method == "POST":
-        symbol = request.form.get('symbol')
-        symbol_info = lookup(symbol)
-        shares = int(request.form.get('shares'))
+    symbol = request.form.get('symbol')
+    price = request.form.get('price')
+    shares = int(request.form.get('shares'))
 
-        # get the number of shares associated with this symbol
-        stock = db.execute(
+    # get the number of shares associated with this symbol
+    stock = db.execute(
             'SELECT *, SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id AND symbols.symbol = :symbol GROUP BY symbols.symbol', user_id=session.get('user_id'), symbol=symbol)[0]
         
-        # return an error if the user doesn't have enough shares or the input is not a positive integer
-        if stock['sum'] < shares or shares < 0:
-            return apology('NOT ENOUGH SHARES', 403)
+    # return an error if the user doesn't have enough shares or the input is not a positive integer
+    if stock['sum'] < shares or shares < 0:
+        return apology('NOT ENOUGH SHARES', 403)
         
-        # update the number of shares in the transactions table                        
-        else:
-            db.execute('INSERT INTO transactions (user_id, symbol_id, shares, price) VALUES (:user_id, :symbol_id, :shares, :price)',
-                       user_id=session.get('user_id'), symbol_id=stock['symbol_id'], shares=-shares, price=symbol_info['price'])
-        
-        # update user's cash
-        symbol_value = symbol_info['price'] * shares
-        db.execute('UPDATE users SET cash = cash + :cash WHERE id = :id',
-                   cash=symbol_value, id=session.get('user_id'))
-
-        flash('You successfully sold {} shares of {}'.format(
-            shares, symbol))
-        return redirect('/')
-
+    # update the number of shares in the transactions table                        
     else:
-        symbols = db.execute(
-            'SELECT *, SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id GROUP BY symbols.symbol', user_id=session.get('user_id'))
-        return render_template('sell.html', symbols=symbols)
+        db.execute('INSERT INTO transactions (user_id, symbol_id, shares, price) VALUES (:user_id, :symbol_id, :shares, :price)',
+                       user_id=session.get('user_id'), symbol_id=stock['symbol_id'], shares=-shares, price=price)
+        
+    # update user's cash
+    transaction_value = price * shares
+    db.execute('UPDATE users SET cash = cash + :cash WHERE id = :id',
+                   cash=transaction_value, id=session.get('user_id'))
+
+    flash('You successfully sold {} shares of {}'.format(
+            shares, symbol))
+    return redirect('/')
 
 
 def errorhandler(e):

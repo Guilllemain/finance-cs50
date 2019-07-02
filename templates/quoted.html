@@ -11,10 +11,15 @@ Quoted
 {% block main %}
 <div class="row">
     <div class="symbol-page-header">
-        <h1 class="symbol-page-header__title">
-            <span class="symbol-page-header__symbol">{{ quote.symbol }}</span>
-            <span class="symbol-page-header__name">{{ quote.companyName }}</span>
-        </h1>
+        <div class="symbol-page-header__company">
+            <div class="symbol-page-header__logo">
+                <img src="https://storage.googleapis.com/iex/api/logos/{{ quote.symbol }}.png" alt="{{ quote.symbol }}">
+            </div>
+            <h1 class="symbol-page-header__title">
+                <!-- <span class="symbol-page-header__symbol">{{ quote.symbol }}</span> -->
+                <span class="symbol-page-header__name">{{ quote.companyName }}</span>
+            </h1>
+        </div>
         <div class="symbol-page-header__details">
             <div class="symbol-page-header__price">
                 <svg class="{%if variation['value'] >= 0 %}symbol-page-header__icon-up{% else %}symbol-page-header__icon-down{% endif %}"
@@ -30,9 +35,38 @@ Quoted
                 </div>
             </div>
             <div class="symbol-page-header__actions">
-                <!-- TODO --- Implement a modal with a form for each action -->
-                <button class="white-text btn teal">Buy</button>
-                <button class="white-text red darken-2 btn">Sell</button>
+                <a class='dropdown-trigger white-text btn teal' href='#' data-target='dropdown1'>Buy</a>
+                <ul id='dropdown1' class='dropdown-content'>
+                    <form action="/buy" method="POST">
+                        <input type="hidden" value="{{ quote.symbol }}" name="symbol">
+                        <input type="hidden" value="{{ quote.latestPrice }}" name="price">
+                        <div class="m-1">
+                            <input type="number" class="m-4 validate" placeholder="Shares" name="shares">
+                        </div>
+                        <button type="submit" class="buy-button">Buy</button>
+                    </form>
+                </ul>
+
+                {% if qtyInStock > 0 %}
+                <a class="dropdown-trigger white-text red darken-2 btn" href='#' data-target='dropdown2'>Sell</a>
+                <ul id='dropdown2' class='dropdown-content'>
+                    <form action="/sell" method="POST">
+                        <input type="hidden" value="{{ quote.symbol }}" name="symbol">
+                        <input type="hidden" value="{{ quote.latestPrice }}" name="price">
+                        <div class="m-1 input-field">
+                            <select name="shares">
+                                <option value="" disabled selected>How many shares</option>
+                                {% for i in range(qtyInStock) %}
+                                    <option value="{{i + 1 }}">{{ i + 1 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="sell-button">Sell</button>
+                    </form>
+                </ul>
+                {% else %}
+                    <button class="white-text red darken-2 btn" disabled>Sell</button>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -103,4 +137,14 @@ Quoted
     </div>
 </div>
 {% endif %}
+
+<script>
+    const elems = document.querySelectorAll('.dropdown-trigger');
+    M.Dropdown.init(elems, {
+        coverTrigger: false,
+        closeOnClick: false,
+        constrainWidth: false
+    });
+</script>
+
 {% endblock %}

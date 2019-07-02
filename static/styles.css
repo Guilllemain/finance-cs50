@@ -5,10 +5,21 @@
     margin: 0;
 }
 
+html, body {
+    height: 100%;
+}
+
 body {
+    display: flex;
+    flex-direction: column;
     font-family: 'Roboto', Helvetica, Arial, sans-serif;
     font-weight: 300;
     letter-spacing: .03em;
+}
+
+footer {
+    margin-top: auto;
+    margin-bottom: 1rem;
 }
 
 a:hover {
@@ -153,6 +164,7 @@ main img
 .text-green {color: green;}
 .text-red {color: red;}
 
+.m-1 {margin: 1rem}
 .m-4 {margin: 4rem}
 .mt-2 {margin-top: 2rem;}
 .mt-3 {margin-top: 3rem;}
@@ -169,7 +181,7 @@ main img
     margin-right: -.5rem;
 }
 .symbol-page-header__name {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
 }
 
 .news {
@@ -289,4 +301,69 @@ main img
     justify-content: space-between;
     width: 66.6666666667%;
     padding-right: .75rem;
+}
+
+.form-button {
+    border: none;
+    color: #3c3c3c;
+    font-weight: 500;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.form-button:hover {
+    color: #656565;
+}
+.form-button:focus, .buy-button:focus {
+    background-color: transparent;
+}
+
+.symbol-page-header__company {
+    display: flex;
+    align-items: baseline;
+}
+.symbol-page-header__logo {
+    height: 3.5rem;
+    width: 3.5rem;
+    margin-right: 1.5rem;
+}
+.symbol-page-header__logo img {
+    width: 100%;
+}
+
+.dropdown-content {
+    overflow-y: hidden;
+}
+
+.buy-button {
+    display: block;
+    border: none;
+    color: #009688;
+    background-color: transparent;
+    cursor: pointer;
+    margin: 1rem;
+    margin-left: auto;
+    text-transform: uppercase;
+}
+
+.buy-button:hover {
+    color: #007165;
+}
+.sell-button {
+    display: block;
+    border: none;
+    color: #D32F2F;
+    background-color: transparent;
+    cursor: pointer;
+    margin: 1rem;
+    margin-left: auto;
+    text-transform: uppercase;
+}
+
+.sell-button:hover {
+    color: #981b1b;
+}
+
+.dropdown-content select {
+    display: block;
 }
