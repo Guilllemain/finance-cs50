@@ -4,18 +4,20 @@ from cs50 import SQL
 from flask_cors import CORS
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
-from tempfile import mkdtemp
+from config import Config
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 from helpers import apology, login_required, lookup, usd, fetchNews, fetchDividends
 
 # Configure application
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
-
-# Ensure templates are auto-reloaded
-app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config.from_object(Config)
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Ensure responses aren't cached
 @app.after_request
@@ -28,10 +30,6 @@ def after_request(response):
 # Custom filter
 app.jinja_env.filters["usd"] = usd
 
-# Configure session to use filesystem (instead of signed cookies)
-app.config["SESSION_FILE_DIR"] = mkdtemp()
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure CS50 Library to use SQLite database
@@ -162,6 +160,8 @@ def login():
         elif not request.form.get("password"):
             return apology("must provide password", 403)
 
+        next_url = request.form.get('next_url')
+
         # Query database for username
         rows = db.execute("SELECT * FROM users WHERE username = :username",
                           username=request.form.get("username"))
@@ -175,7 +175,7 @@ def login():
 
         # Redirect user to home page
         flash('You successfully logged in')
-        return redirect("/")
+        return redirect(next_url)
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
@@ -194,7 +194,6 @@ def logout():
 
 
 @app.route("/quote", methods=["POST"])
-@login_required
 def quote():
     """Get stock quote."""
     quote = lookup(request.form.get('symbol'))
@@ -206,13 +205,14 @@ def quote():
     
     # get all the news for this symbol
     news = fetchNews(quote['symbol'], 5)
-
-    # check if there is any shares of this symbol in stock and save it in a variable
-    stock = db.execute(
-        'SELECT SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id AND symbols.symbol = :symbol GROUP BY symbols.symbol', user_id=session.get('user_id'), symbol=quote['symbol'])
+    
     qtyInStock = 0
-    if stock and stock[0]['sum'] > 0:
-        qtyInStock = stock[0]['sum']
+    # if the user is logged, check if there is any shares of this symbol in stock and save it in a variable
+    if session.get("user_id") is not None:
+        stock = db.execute(
+            'SELECT SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id AND symbols.symbol = :symbol GROUP BY symbols.symbol', user_id=session.get('user_id'), symbol=quote['symbol'])
+        if stock and stock[0]['sum'] > 0:
+            qtyInStock = stock[0]['sum']
     
     return render_template('quoted.html', quote=quote, news=news, variation=variation, dividends=dividends, qtyInStock=qtyInStock)
 
