@@ -35,7 +35,6 @@ Quoted
                 </div>
             </div>
             <div class="symbol-page-header__actions">
-                {% if qtyInStock > 0 %}
                 <a class='dropdown-trigger white-text btn teal' href='#' data-target='dropdown1'>Buy</a>
                 <ul id='dropdown1' class='dropdown-content'>
                     <form action="/buy" method="POST">
@@ -48,10 +47,7 @@ Quoted
                     </form>
                 </ul>
 
-                {% if current_user.is_authenticated %}
-                    Hi {{ current_user }}!
-                {% endif %}
-
+                {% if qtyInStock > 0 %}
                 <a class="dropdown-trigger white-text red darken-2 btn" href='#' data-target='dropdown2'>Sell</a>
                 <ul id='dropdown2' class='dropdown-content'>
                     <form action="/sell" method="POST">
