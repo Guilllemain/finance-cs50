@@ -1,7 +1,9 @@
 from app import app, db
+from app.models import User, Transaction, Symbol
 from flask import flash, jsonify, redirect, render_template, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import apology, login_required, lookup, fetchNews, fetchDividends
+from sqlalchemy import func
 
 
 @app.route("/")
@@ -16,24 +18,27 @@ def dashboard():
     stocks = []
 
     # get the cash left for the user
-    cash_left = db.execute(
-        'SELECT cash FROM users WHERE id = :id', id=session.get('user_id'))[0]['cash']
+    cash_left = User.query.filter_by(id=session.get('user_id')).first().cash
 
     # extract all transactions from the database for this symbol with the average price and the total number of shares
-    transactions = db.execute(
-        'SELECT *, AVG(price) as avg_price, SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id GROUP BY symbols.symbol', user_id=session.get('user_id'))
+    transactions = Transaction.query(Transaction).with_entities(func.sum(Transaction.shares).label("shares_count")).filter_by(user_id=session.get('user_id')).all()
+    # transactions = db.execute(
+    #     'SELECT *, AVG(price) as avg_price, SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id GROUP BY symbols.symbol', user_id=session.get('user_id'))
     wallet_value = cash_left
-    symbols_list = ','.join([el['symbol'] for el in transactions])
-    symbols_details = lookup(symbols_list, True)
 
-    if transactions:
+    if transactions is not None:
+        print('---------', transactions)
+        # symbols_list = ','.join([el.get_symbol.symbol for el in transactions])
+        # symbols_details = lookup(symbols_list, True)
         for transaction in transactions:
-            if transaction['sum'] > 0:
-                symbol = transaction['symbol']
+            print('-----01', transaction)
+            print('-----01', transaction.price)
+            if transaction.shares_count > 0:
+                symbol = transaction.get_symbol.symbol
                 name = symbols_details[symbol]['quote']['companyName']
                 price = symbols_details[symbol]['quote']['latestPrice']
-                shares = transaction['sum']
-                bought = transaction['avg_price']
+                shares = transaction.shares_count
+                bought = 300
                 total = float(shares) * \
                     symbols_details[symbol]['quote']['latestPrice']
                 variation = round(
@@ -57,8 +62,7 @@ def buy():
     total = float(request.form.get("shares")) * float(price)
 
     # get the cash from the user
-    user_cash = db.execute(
-        'SELECT cash FROM users WHERE id = :id', id=session.get('user_id'))[0]['cash']
+    user_cash = User.query.filter_by(id=session.get('user_id')).first().cash
 
     # check if the user can afford the stock
     cash_left = user_cash - total
@@ -66,22 +70,21 @@ def buy():
         return apology('You cannot afford it')
 
     # insert the requested symbol into the symbol table if it doesn't exists
-    is_symbol_present = db.execute(
-        'SELECT symbol FROM symbols WHERE symbol = :symbol', symbol=symbol)
-    if not is_symbol_present:
-        db.execute('INSERT INTO symbols (symbol) VALUES(:symbol)', symbol=symbol)
-
-    # get the id from the requested symbol
-    symbol_id = db.execute(
-        'SELECT id FROM symbols WHERE symbol = :symbol', symbol=symbol)[0]['id']
+    symbol_db = Symbol.query.filter_by(symbol=symbol).first()
+    if symbol_db is None:
+        symbol_db = Symbol(symbol=symbol)
+        db.session.add(symbol_db)
+        db.session.commit()
 
     # add the transaction to the table
-    db.execute('INSERT INTO transactions (user_id, symbol_id, shares, price) VALUES (:user_id, :symbol_id, :shares, :price)',
-               user_id=session.get('user_id'), symbol_id=symbol_id, shares=int(request.form.get("shares")), price=price)
+    transaction = Transaction(user_id=session.get('user_id'), symbol_id=symbol_db.id, shares=int(request.form.get("shares")), price=price)
+    db.session.add(transaction)
+    db.session.commit()
 
     # update the user's cash
-    db.execute('UPDATE users SET cash = :cash WHERE id = :id',
-               cash=cash_left, id=session.get('user_id'))
+    user = User.query.filter_by(id=session.get('user_id')).first()
+    user.cash = cash_left
+    
     flash('You successfully bought {} shares of {}'.format(
         request.form.get("shares"), symbol))
     return redirect('/')
@@ -139,15 +142,14 @@ def login():
         next_url = request.form.get('next_url')
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = :username",
-                          username=request.form.get("username"))
+        user = User.query.filter_by(username=request.form.get("username")).first()
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+        if not user or not check_password_hash(user.password_hash, request.form.get("password")):
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
+        session["user_id"] = user.id
 
         # Redirect user to home page
         flash('You successfully logged in')
@@ -186,10 +188,10 @@ def quote():
     qtyInStock = 0
     # if the user is logged, check if there is any shares of this symbol in stock and save it in a variable
     if session.get("user_id") is not None:
-        stock = db.execute(
-            'SELECT SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id AND symbols.symbol = :symbol GROUP BY symbols.symbol', user_id=session.get('user_id'), symbol=quote['symbol'])
-        if stock and stock[0]['sum'] > 0:
-            qtyInStock = stock[0]['sum']
+        stock = Transaction.query.filter_by(user_id=session.get('user_id')).join(Symbol).first()
+        print('---------', stock)
+        if stock and stock.shares_count > 0:
+            qtyInStock = stock.shares_count
 
     return render_template('quoted.html', quote=quote, news=news, variation=variation, dividends=dividends, qtyInStock=qtyInStock)
 
@@ -212,15 +214,15 @@ def register_user():
 
     username = request.form.get('username')
     # Ensure username does not exists
-    is_username_taken = db.execute(
-        'SELECT username FROM users WHERE username = :username', username=username)
+    is_username_taken = User.query.filter_by(username=username).first()
     if (is_username_taken):
         return apology("username already taken", 403)
 
     # Insert new user in the database
-    hash_password = generate_password_hash(request.form.get('password'))
-    db.execute("INSERT INTO users (username, hash) VALUES(:username, :hash) ",
-               username=username, hash=hash_password)
+    password_hash = generate_password_hash(request.form.get('password'))
+    user = User(username=username, password_hash=password_hash)
+    db.session.add(user)
+    db.session.commit()
 
     # Redirect user to home page
     flash('You successfully registered')

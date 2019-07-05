@@ -14,17 +14,17 @@ from helpers import apology, usd
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 app.config.from_object(Config)
-# db = SQLAlchemy(app)
-# migrate = Migrate(app, db)
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 Session(app)
 
 # Custom filter
 app.jinja_env.filters["usd"] = usd
 
 # Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///finance.db")
+# db = SQL("sqlite:///finance.db")
 
-from app import routes
+from app import routes, models
 
 
 # Ensure responses aren't cached
