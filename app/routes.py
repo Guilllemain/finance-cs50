@@ -21,24 +21,24 @@ def dashboard():
     cash_left = User.query.filter_by(id=session.get('user_id')).first().cash
 
     # extract all transactions from the database for this symbol with the average price and the total number of shares
-    transactions = Transaction.query(Transaction).with_entities(func.sum(Transaction.shares).label("shares_count")).filter_by(user_id=session.get('user_id')).all()
-    # transactions = db.execute(
-    #     'SELECT *, AVG(price) as avg_price, SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id GROUP BY symbols.symbol', user_id=session.get('user_id'))
+    transactions = db.session.query(Symbol.symbol.label('symbol'), func.sum(
+        Transaction.shares).label("shares"), func.avg(
+        Transaction.price).label("avg_price")).join(Symbol, Symbol.id == Transaction.symbol_id).filter(Transaction.user_id == session.get('user_id')).group_by(Symbol.symbol).all()
     wallet_value = cash_left
 
+    print('------', transactions)
+
     if transactions is not None:
-        print('---------', transactions)
-        # symbols_list = ','.join([el.get_symbol.symbol for el in transactions])
-        # symbols_details = lookup(symbols_list, True)
+        symbols_list = ','.join([el.symbol for el in transactions])
+        symbols_details = lookup(symbols_list, True)
         for transaction in transactions:
             print('-----01', transaction)
-            print('-----01', transaction.price)
-            if transaction.shares_count > 0:
-                symbol = transaction.get_symbol.symbol
+            if transaction.shares > 0:
+                symbol = transaction.symbol
                 name = symbols_details[symbol]['quote']['companyName']
                 price = symbols_details[symbol]['quote']['latestPrice']
-                shares = transaction.shares_count
-                bought = 300
+                shares = transaction.shares
+                bought = transaction.avg_price
                 total = float(shares) * \
                     symbols_details[symbol]['quote']['latestPrice']
                 variation = round(
@@ -79,11 +79,12 @@ def buy():
     # add the transaction to the table
     transaction = Transaction(user_id=session.get('user_id'), symbol_id=symbol_db.id, shares=int(request.form.get("shares")), price=price)
     db.session.add(transaction)
-    db.session.commit()
 
     # update the user's cash
     user = User.query.filter_by(id=session.get('user_id')).first()
     user.cash = cash_left
+    
+    db.session.commit()
     
     flash('You successfully bought {} shares of {}'.format(
         request.form.get("shares"), symbol))
@@ -188,10 +189,9 @@ def quote():
     qtyInStock = 0
     # if the user is logged, check if there is any shares of this symbol in stock and save it in a variable
     if session.get("user_id") is not None:
-        stock = Transaction.query.filter_by(user_id=session.get('user_id')).join(Symbol).first()
-        print('---------', stock)
-        if stock and stock.shares_count > 0:
-            qtyInStock = stock.shares_count
+        stock = db.session.query(func.sum(Transaction.shares).label("shares")).filter_by(user_id=session.get('user_id')).first()
+        if stock and stock.shares > 0:
+            qtyInStock = stock.shares
 
     return render_template('quoted.html', quote=quote, news=news, variation=variation, dividends=dividends, qtyInStock=qtyInStock)
 

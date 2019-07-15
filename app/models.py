@@ -10,7 +10,7 @@ class User(db.Model):
     username = db.Column(db.String(64), index=True, unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     cash = db.Column(db.Float, nullable=False, default=10000)
-    get_transactions = db.relationship('Transaction', backref='user', lazy=True)
+    transactions = db.relationship('Transaction', backref='user', lazy=True)
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -20,6 +20,7 @@ class Symbol(db.Model):
     __tablename__ = 'symbols'
     id = db.Column(db.Integer, primary_key=True, nullable=False)
     symbol = db.Column(db.String(20), index=True, unique=True, nullable=False)
+    transactions = db.relationship('Transaction', lazy='select', backref=db.backref('symbol', lazy='joined'))
 
     def __repr__(self):
         return '<Symbol {}>'.format(self.id)
@@ -33,7 +34,6 @@ class Transaction(db.Model):
     shares = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
     date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    get_symbol = db.relationship('Symbol', backref='transactions', lazy=True)
 
     def __repr__(self):
         return '<Transaction {}>'.format(self.id)
