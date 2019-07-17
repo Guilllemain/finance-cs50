@@ -10,35 +10,50 @@ Register
         <div class="input-field">
             <input autocomplete="off" autofocus name="username" type="text">
             <label for="username">Username</label>
-            <span class="helper-text" data-error="Username already taken"></span>
+            <span class="helper-text" data-error="Username already taken" data-success="This username is available"></span>
         </div>
         <div class="input-field">
-            <input name="password" type="password">
+            <input name="password" type="password" class="valid">
             <label for="password">Password</label>
             <span class="helper-text" data-error="Your password must be at least 6 characters long"></span>
         </div>
         <div class="input-field">
-            <input name="password_confirmation" type="password">
+            <input name="password_confirmation" type="password" class="valid">
             <label for="password_confirmation">Confirm password</label>
             <span class="helper-text" data-error="You must enter the same password"></span>
         </div>
-        <button class="waves-effect waves-light btn" type="submit">Register</button>
+        <button class="waves-effect waves-light btn" disabled type="submit">Register</button>
     </form>
 </div>
 
 <script>
-    document.registration.addEventListener('submit', async function (event) {
-        event.preventDefault()
+    document.registration.username.addEventListener('keyup', async function(event) {
+        this.classList.remove('invalid', 'valid')
+        if (this.value.length < 3) return
         const { data } = await axios.get('/check', {
             params: {
-                username: this.username.value
+                username: this.value
             }
         })
-        if (!data) return this.username.classList.add('invalid')
+        if (!data) {
+            document.querySelector('button').setAttribute('disabled', true)
+            return this.classList.add('invalid')
+        }
+        this.classList.add('valid')
+        if (isFormValid()) document.querySelector('button').removeAttribute('disabled')
+    })
+    const isFormValid = () => {
+        return [...document.registration.querySelectorAll('input')].every(el => el.classList.contains('valid'))
+    }
+    document.registration.password.addEventListener('keyup', function(event) {
+        
+    })
+    document.registration.addEventListener('submit', async function (event) {
+        event.preventDefault()
         if (this.password.value.length < 6) {
             return this.password.classList.add('invalid')
         }
-        if (this.password.value != this.password_confirmation.value) {
+        if (this.password.value !== this.password_confirmation.value) {
             return this.password_confirmation.classList.add('invalid')
         }
         this.submit()
