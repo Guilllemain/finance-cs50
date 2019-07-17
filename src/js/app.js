@@ -1,6 +1,8 @@
 import axios from 'axios'
 import _ from 'lodash'
 
+window.axios = axios
+
 let symbols = []
 const searchInput = document.querySelector('#search')
 const container = document.querySelector('.search__results')

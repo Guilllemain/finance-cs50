@@ -26,13 +26,10 @@ def dashboard():
         Transaction.price).label("avg_price")).join(Symbol, Symbol.id == Transaction.symbol_id).filter(Transaction.user_id == session.get('user_id')).group_by(Symbol.symbol).all()
     wallet_value = cash_left
 
-    print('------', transactions)
-
     if transactions is not None:
         symbols_list = ','.join([el.symbol for el in transactions])
         symbols_details = lookup(symbols_list, True)
         for transaction in transactions:
-            print('-----01', transaction)
             if transaction.shares > 0:
                 symbol = transaction.symbol
                 name = symbols_details[symbol]['quote']['companyName']
@@ -95,9 +92,8 @@ def buy():
 def check():
     """Return true if username available, else false, in JSON format"""
     username = request.args.get('username')
-    is_username_taken = db.execute(
-        'SELECT * FROM users WHERE username = :username', username=username)
-    if is_username_taken or len(username) < 1:
+    is_username_taken = User.query.filter_by(username=username).first()
+    if is_username_taken is not None:
         return jsonify(False)
     return jsonify(True)
 
@@ -106,20 +102,9 @@ def check():
 @login_required
 def history():
     """Show history of transactions"""
-    stocks = []
-    transactions = db.execute(
-        'SELECT * FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id', user_id=session.get('user_id'))
-    if transactions:
-        for transaction in transactions:
-            symbol = transaction['symbol']
-            price = transaction['price']
-            shares = transaction['shares']
-            date = transaction['date']
-            total = float(abs(shares)) * transaction['price']
-            stocks.append({'symbol': symbol, 'shares': shares,
-                           'price': price, 'date': date, 'total': total})
+    transactions = Transaction.query.filter(Transaction.user_id == session.get('user_id')).all()
 
-    return render_template("history.html", stocks=stocks)
+    return render_template("history.html", transactions=transactions)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -189,9 +174,10 @@ def quote():
     qtyInStock = 0
     # if the user is logged, check if there is any shares of this symbol in stock and save it in a variable
     if session.get("user_id") is not None:
-        stock = db.session.query(func.sum(Transaction.shares).label("shares")).filter_by(user_id=session.get('user_id')).first()
-        if stock and stock.shares > 0:
-            qtyInStock = stock.shares
+        stock = db.session.query(Symbol.symbol, func.sum(
+            Transaction.shares).label("sum")).join(Symbol, Symbol.id == Transaction.symbol_id).filter(Transaction.user_id == session.get('user_id'), Symbol.symbol == quote['symbol']).first()
+        if stock and stock.sum > 0:
+            qtyInStock = stock.sum
 
     return render_template('quoted.html', quote=quote, news=news, variation=variation, dividends=dividends, qtyInStock=qtyInStock)
 
@@ -238,22 +224,23 @@ def sell():
     shares = int(request.form.get('shares'))
 
     # get the number of shares associated with this symbol
-    stock = db.execute(
-        'SELECT *, SUM(shares) as sum FROM transactions JOIN symbols ON symbols.id = transactions.symbol_id WHERE user_id = :user_id AND symbols.symbol = :symbol GROUP BY symbols.symbol', user_id=session.get('user_id'), symbol=symbol)[0]
-
+    stock = db.session.query(Transaction.symbol_id, func.sum(
+        Transaction.shares).label("sum")).join(Symbol, Symbol.id == Transaction.symbol_id).filter(Transaction.user_id == session.get('user_id'), Symbol.symbol == symbol).first()
     # return an error if the user doesn't have enough shares or the input is not a positive integer
-    if stock['sum'] < shares or shares < 0:
+    if stock.sum < shares or shares < 0:
         return apology('NOT ENOUGH SHARES', 403)
 
     # update the number of shares in the transactions table
     else:
-        db.execute('INSERT INTO transactions (user_id, symbol_id, shares, price) VALUES (:user_id, :symbol_id, :shares, :price)',
-                   user_id=session.get('user_id'), symbol_id=stock['symbol_id'], shares=-shares, price=price)
+        transaction = Transaction(user_id=session.get('user_id'), symbol_id=stock.symbol_id, shares=-shares, price=price)
+        db.session.add(transaction)
 
     # update user's cash
-    transaction_value = price * shares
-    db.execute('UPDATE users SET cash = cash + :cash WHERE id = :id',
-               cash=transaction_value, id=session.get('user_id'))
+    transaction_value = float(price) * float(shares)
+    user = User.query.filter_by(id=session.get('user_id')).first()
+    user.cash += transaction_value
+
+    db.session.commit()
 
     flash('You successfully sold {} shares of {}'.format(
         shares, symbol))

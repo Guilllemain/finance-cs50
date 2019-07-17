@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block main %}
-    {% if stocks|length <= 0 %}
+    {% if transactions|length <= 0 %}
         <div>You have no transactions yet</div>
     {% else %}
         <div class="row">
@@ -21,18 +21,18 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for stock in stocks %}
+                        {% for transaction in transactions %}
                             <tr>
                                 <td>
                                     <form action="/quote" method="POST" name="">
-                                        <input type="hidden" name="symbol" value="{{ stock['symbol'] }}">
-                                        <button type="submit" class="form-button">{{ stock['symbol'] }}</button>
+                                        <input type="hidden" name="symbol" value="{{ transaction.symbol.symbol }}">
+                                        <button type="submit" class="form-button">{{ transaction.symbol.symbol }}</button>
                                     </form>
                                 </td>
-                                <td>{{ stock['shares'] }}</td>
-                                <td>{{ stock['price']|usd }}</td>
-                                <td>{{ stock['total']|usd }}</td>
-                                <td>{{ stock['date'] }}</td>
+                                <td>{{ transaction.shares }}</td>
+                                <td>{{ transaction.price|usd }}</td>
+                                <td>{{ (transaction.price * transaction.shares)|usd }}</td>
+                                <td>{{ transaction.date.strftime('%Y-%m-%d') }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

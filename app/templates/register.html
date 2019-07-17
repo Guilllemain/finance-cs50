@@ -1,44 +1,47 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Register
+Register
 {% endblock %}
 
 {% block main %}
-    <div class="row">
-        <form action="/register" method="post" name="registration" class="col s4 offset-s4 center-align">
-            <div class="input-field">
-                <input autocomplete="off" autofocus name="username" type="text">
-                <label for="username">Username</label>
-                <!-- <div class="invalid-feedback">
-                    Username already taken
-                </div> -->
-            </div>
-            <div class="input-field">
-                <input name="password" type="password">
-                <label for="password">Password</label>
-            </div>
-            <div class="input-field">
-                <input name="password_confirmation" type="password">
-                <label for="password_confirmation">Confirm password</label>
-                <!-- <div class="invalid-feedback">
-                    You must enter the same password
-                </div> -->
-            </div>
-            <button class="waves-effect waves-light btn" type="submit">Register</button>
-        </form>
-    </div>
+<div class="row">
+    <form action="" method="post" name="registration" class="col s4 offset-s4 center-align">
+        <div class="input-field">
+            <input autocomplete="off" autofocus name="username" type="text">
+            <label for="username">Username</label>
+            <span class="helper-text" data-error="Username already taken"></span>
+        </div>
+        <div class="input-field">
+            <input name="password" type="password">
+            <label for="password">Password</label>
+            <span class="helper-text" data-error="Your password must be at least 6 characters long"></span>
+        </div>
+        <div class="input-field">
+            <input name="password_confirmation" type="password">
+            <label for="password_confirmation">Confirm password</label>
+            <span class="helper-text" data-error="You must enter the same password"></span>
+        </div>
+        <button class="waves-effect waves-light btn" type="submit">Register</button>
+    </form>
+</div>
 
-    <script>
-        // document.registration.addEventListener('submit', function(event) {
-        //     event.preventDefault()
-        //     $.get(`/check?username=${this.username.value}`, data => {
-        //         if (!data) return this.username.classList.add('is-invalid')
-        //         if (this.password.value != this.password_confirmation.value) {
-        //             return this.password_confirmation.classList.add('is-invalid')
-        //         }                     
-        //         this.submit()
-        //     })
-        // })
-    </script>
+<script>
+    document.registration.addEventListener('submit', async function (event) {
+        event.preventDefault()
+        const { data } = await axios.get('/check', {
+            params: {
+                username: this.username.value
+            }
+        })
+        if (!data) return this.username.classList.add('invalid')
+        if (this.password.value.length < 6) {
+            return this.password.classList.add('invalid')
+        }
+        if (this.password.value != this.password_confirmation.value) {
+            return this.password_confirmation.classList.add('invalid')
+        }
+        this.submit()
+    })
+</script>
 {% endblock %}

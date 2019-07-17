@@ -5,7 +5,7 @@ const config = {
         chart: __dirname + '/src/js/chart.js',
     },
     output: {
-        path: __dirname + '/static',
+        path: __dirname + '/app/static',
         filename: '[name].js',
     },
     resolve: {
