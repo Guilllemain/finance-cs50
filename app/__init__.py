@@ -1,7 +1,5 @@
 import os
 
-from cs50 import SQL
-from flask_cors import CORS
 from flask import Flask
 from flask_session import Session
 from config import Config
@@ -12,7 +10,6 @@ from helpers import apology, usd
 
 # Configure application
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
 app.config.from_object(Config)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)

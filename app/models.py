@@ -1,8 +1,6 @@
 from app import db
 from select import select
 from datetime import datetime
-from sqlalchemy import func
-from sqlalchemy.ext.hybrid import hybrid_property
 
 class User(db.Model):
     __tablename__ = 'users'
