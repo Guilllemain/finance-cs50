@@ -1,8 +1,13 @@
 import requests
 import urllib.parse
+import os
 
 from flask import redirect, render_template, request, session, url_for
 from functools import wraps
+
+
+ALPHAVANTAGE_API_KEY = os.getenv('ALPHAVANTAGE_API_KEY')
+IEXCLOUD_TOKEN = os.getenv('IEXCLOUD_TOKEN')
 
 
 def apology(message, code=400):
@@ -41,11 +46,11 @@ def lookup(symbol, multiple = False):
     try:
         if not multiple:
             response = requests.get(
-                f"https://cloud.iexapis.com/stable/stock/{urllib.parse.quote_plus(symbol)}/quote?token=pk_5090c32b331348cf8e034e7fa7a140fd")
+                f"https://cloud.iexapis.com/stable/stock/{urllib.parse.quote_plus(symbol)}/quote?token={IEXCLOUD_TOKEN}")
             response.raise_for_status()
         else:
             response = requests.get(
-                f"https://cloud.iexapis.com/stable/stock/market/batch?symbols={symbol}&types=quote&token=pk_5090c32b331348cf8e034e7fa7a140fd")
+                f"https://cloud.iexapis.com/stable/stock/market/batch?symbols={symbol}&types=quote&token={IEXCLOUD_TOKEN}")
             response.raise_for_status()
     except requests.RequestException:
         return None
@@ -57,13 +62,13 @@ def lookup(symbol, multiple = False):
         return None
 
 
-def fetchNews(symbol, number = 10):
+def fetch_news(symbol, number = 10):
     """Fetch up latest news."""
 
     # Contact API
     try:
         response = requests.get(
-            f"https://cloud.iexapis.com/stable/stock/{urllib.parse.quote_plus(symbol)}/news/last/{number}?token=pk_5090c32b331348cf8e034e7fa7a140fd")
+            f"https://cloud.iexapis.com/stable/stock/{urllib.parse.quote_plus(symbol)}/news/last/{number}?token={IEXCLOUD_TOKEN}")
         response.raise_for_status()
     except requests.RequestException:
         return None
@@ -75,13 +80,13 @@ def fetchNews(symbol, number = 10):
         return None
 
 
-def fetchDividends(symbol, timeframe='2y'):
+def fetch_dividends(symbol, timeframe='2y'):
     """Fetch up latest news."""
 
     # Contact API
     try:
         response = requests.get(
-            f"https://cloud.iexapis.com/stable/stock/{urllib.parse.quote_plus(symbol)}/dividends/{timeframe}?token=pk_5090c32b331348cf8e034e7fa7a140fd")
+            f"https://cloud.iexapis.com/stable/stock/{urllib.parse.quote_plus(symbol)}/dividends/{timeframe}?token={IEXCLOUD_TOKEN}")
         response.raise_for_status()
     except requests.RequestException:
         return None
@@ -92,6 +97,35 @@ def fetchDividends(symbol, timeframe='2y'):
     except (KeyError, TypeError, ValueError):
         return None
 
+
+def symbol_price_timeserie(symbol, timeframe, now):
+    """Fetch up graph data"""
+    if now:
+        try:
+            response = requests.get(
+                f"https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={symbol}&interval=1min&outputsize=full&apikey={ALPHAVANTAGE_API_KEY}")
+            response.raise_for_status()
+        except requests.RequestException:
+            return None
+
+        # Parse response
+        try:
+            return response.json()
+        except (KeyError, TypeError, ValueError):
+            return None
+    else:
+        try:
+            response = requests.get(
+                f"https://www.alphavantage.co/query?function=MIDPRICE&symbol={symbol}&interval={timeframe}&time_period=10&apikey={ALPHAVANTAGE_API_KEY}")
+            response.raise_for_status()
+        except requests.RequestException:
+            return None
+
+        # Parse response
+        try:
+            return response.json()
+        except (KeyError, TypeError, ValueError):
+            return None
 
 def usd(value):
     """Format value as USD."""

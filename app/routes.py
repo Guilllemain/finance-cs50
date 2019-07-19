@@ -2,7 +2,7 @@ from app import app, db
 from app.models import User, Transaction, Symbol
 from flask import flash, jsonify, redirect, render_template, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import apology, login_required, lookup, fetchNews, fetchDividends
+from helpers import apology, login_required, lookup, fetch_news, fetch_dividends, symbol_price_timeserie
 from sqlalchemy import func
 
 
@@ -169,10 +169,10 @@ def quote():
         variation_value = round(quote['latestPrice'] - quote['close'], 2)
         variation_perc = round(((quote['latestPrice'] - quote['close']) / quote['close']) * 100, 2)
     variation = {'value': variation_value, 'perc': variation_perc}
-    dividends = fetchDividends(quote['symbol'])
+    dividends = fetch_dividends(quote['symbol'])
 
     # get all the news for this symbol
-    news = fetchNews(quote['symbol'], 5)
+    news = fetch_news(quote['symbol'], 5)
 
     qtyInStock = 0
     # if the user is logged, check if there is any shares of this symbol in stock and save it in a variable
@@ -248,3 +248,11 @@ def sell():
     flash('You successfully sold {} shares of {}'.format(
         shares, symbol))
     return redirect('/')
+
+@app.route('/graph', methods=['GET'])
+def graph():
+    symbol = request.args.get('symbol')
+    timeframe = request.args.get('timeframe')
+    now = request.args.get('now')
+    data = symbol_price_timeserie(symbol, timeframe, now)
+    return jsonify(data)

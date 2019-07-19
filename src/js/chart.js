@@ -111,7 +111,10 @@ const getHistoricalPrices = async (period = '1d', timeframe = 'daily') => {
         ((period === 'ytd' || period === '3m' || period === '6m' || period === '1y' || period === '3y' || period === '5y' || period === 'forever') && !entries_daily)) {
 
         try {
-            const { data } = await axios.get(`https://www.alphavantage.co/query?function=MIDPRICE&symbol=${symbol}&interval=${timeframe}&time_period=10&apikey=L1EUOH2BMKW2QDWU`)
+            const { data } = await axios.get('/graph', { params: {
+                symbol, timeframe
+            }})
+            console.log(data)
             entries = Object.entries(data['Technical Analysis: MIDPRICE'])
         } catch (error) {
             console.error(error)
@@ -119,9 +122,12 @@ const getHistoricalPrices = async (period = '1d', timeframe = 'daily') => {
     }
     if (period === '1d' && !entries_realtime) {
         try {
-            const { data } = await axios.get(`https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=1min&outputsize=full&apikey=L1EUOH2BMKW2QDWU`)
+            const { data } = await axios.get('/graph', {
+                params: {
+                    symbol, timeframe, now: true
+                }
+            })
             entries = Object.entries(data['Time Series (1min)'])
-            console.log(entries)
         } catch (error) {
             console.error(error)
         }
