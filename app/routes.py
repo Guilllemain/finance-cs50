@@ -163,9 +163,12 @@ def quote():
     quote = lookup(request.form.get('symbol'))
     if not quote:
         return apology('Symbol does not exists', 403)
-
-    variation = {'value': round(quote['latestPrice'] - quote['close'], 2), 'perc': round(
-        ((quote['latestPrice'] - quote['close']) / quote['close']) * 100, 2)}
+    variation_value = quote['latestPrice']
+    variation_perc = 0
+    if quote['close'] is not None:
+        variation_value = round(quote['latestPrice'] - quote['close'], 2)
+        variation_perc = round(((quote['latestPrice'] - quote['close']) / quote['close']) * 100, 2)
+    variation = {'value': variation_value, 'perc': variation_perc}
     dividends = fetchDividends(quote['symbol'])
 
     # get all the news for this symbol
@@ -176,7 +179,7 @@ def quote():
     if session.get("user_id") is not None:
         stock = db.session.query(Symbol.symbol, func.sum(
             Transaction.shares).label("sum")).join(Symbol, Symbol.id == Transaction.symbol_id).filter(Transaction.user_id == session.get('user_id'), Symbol.symbol == quote['symbol']).first()
-        if stock and stock.sum > 0:
+        if stock[0] and stock.sum > 0:
             qtyInStock = stock.sum
 
     return render_template('quoted.html', quote=quote, news=news, variation=variation, dividends=dividends, qtyInStock=qtyInStock)
