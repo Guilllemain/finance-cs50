@@ -129,13 +129,13 @@ def login():
 
         # Query database for username
         user = User.query.filter_by(username=request.form.get("username")).first()
-
+        
         # Ensure username exists and password is correct
         if not user or not check_password_hash(user.password_hash, request.form.get("password")):
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
-        session["user_id"] = user.id
+        session['user_id'] = user.id
 
         # Redirect user to home page
         flash('You successfully logged in')

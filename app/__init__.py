@@ -1,25 +1,25 @@
 import os
 
+from config import Config
 from flask import Flask
 from flask_session import Session
-from config import Config
-from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from helpers import apology, usd
+from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 
 # Configure application
 app = Flask(__name__)
 app.config.from_object(Config)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-Session(app)
+sess = Session()
+sess.init_app(app)
+
 
 # Custom filter
 app.jinja_env.filters["usd"] = usd
 
-# Configure CS50 Library to use SQLite database
-# db = SQL("sqlite:///finance.db")
 
 from app import routes, models
 
